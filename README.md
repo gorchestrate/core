@@ -2,6 +2,7 @@
 Gorchestrate Core is a database for storing asynchronous processes using Go Way.
 It manages their execution, ensures linearized consistency level and has a log of events that you can subscribe to.
 
+
 This service solves couple of problems, compared to simply using DB, MQ or similar products:
 * Linearized consistency with > 10k req/sec. 
 * Immutable log of events in the system.
