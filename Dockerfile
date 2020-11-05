@@ -16,5 +16,5 @@ RUN make build_docker_static
 
 
 FROM alpine:latest
-COPY --from=build /slct /slct
-CMD ["/slct"]
+COPY --from=build /core /core
+CMD ["/core"]

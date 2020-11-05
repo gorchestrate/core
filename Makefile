@@ -1,6 +1,6 @@
 
 build_docker_static:
-	CGO_CFLAGS="-I/rocksdb/include" CGO_LDFLAGS="-L/rocksdb -lrocksdb -lstdc++ -lm -lz -lbz2 -lsnappy -llz4 -lzstd" go build -tags netgo -ldflags "-w -extldflags \"-static\"" .
+	CGO_CFLAGS="-I/rocksdb/include" CGO_LDFLAGS="-L/rocksdb -lrocksdb -lstdc++ -lm -lz -lbz2 -lsnappy -llz4 -lzstd" go build -tags netgo -ldflags "-w -extldflags \"-static\"" -o core .
 
 run:
 	docker build -t slct . && \
