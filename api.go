@@ -164,6 +164,15 @@ func (srv *Server) PutAPI(ctx context.Context, req *WorkflowAPI) (*Empty, error)
 	return &Empty{}, srv.r.db.Write(srv.r.wo, wb)
 }
 
+func (srv *Server) DeleteAPI(ctx context.Context, req *WorkflowAPI) (*Empty, error) {
+	if req.Name == "" {
+		return nil, fmt.Errorf("API name is empty")
+	}
+	wb := gorocksdb.NewWriteBatch()
+	wb.DeleteCF(srv.r.cfhAPIs, []byte(req.Name))
+	return &Empty{}, srv.r.db.Write(srv.r.wo, wb)
+}
+
 func (srv *Server) PutType(ctx context.Context, req *Type) (*Empty, error) {
 	if req.Id == "" {
 		return nil, fmt.Errorf("Id is empty")
@@ -282,105 +291,105 @@ func (srv *Server) LockWorkflow(ctx context.Context, req *LockWorkflowReq) (*Loc
 	}, nil
 }
 
-func (srv *Server) PutWorkflow(ctx context.Context, req *PutWorkflowReq) (out *Empty, err error) {
-	err = validateString(req.Workflow.Id, "workflow id")
-	if err != nil {
-		return nil, err
-	}
-	err = validateString(req.Workflow.Name, "workflow name")
-	if err != nil {
-		return nil, err
-	}
-	err = validateString(req.Workflow.Service, "workflow service")
-	if err != nil {
-		return nil, err
-	}
-	if req.Workflow.Status != Workflow_Running {
-		return nil, fmt.Errorf("unexpected workflow status: %v", req.Workflow.Status)
-	}
+// func (srv *Server) PutWorkflow(ctx context.Context, req *PutWorkflowReq) (out *Empty, err error) {
+// 	err = validateString(req.Workflow.Id, "workflow id")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	err = validateString(req.Workflow.Name, "workflow name")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	err = validateString(req.Workflow.Service, "workflow service")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	if req.Workflow.Status != Workflow_Running {
+// 		return nil, fmt.Errorf("unexpected workflow status: %v", req.Workflow.Status)
+// 	}
 
-	for _, t := range req.Workflow.Threads {
-		err := validateAndFillThread(req.Workflow, t)
-		if err != nil {
-			return nil, fmt.Errorf("thread %v: %v", t.Id, err)
-		}
-	}
+// 	for _, t := range req.Workflow.Threads {
+// 		err := validateAndFillThread(req.Workflow, t)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("thread %v: %v", t.Id, err)
+// 		}
+// 	}
 
-	l := srv.r.lockWorkflow(ctx, req.Workflow.Id, time.Second*30)
-	if l == nil {
-		return nil, fmt.Errorf("can't lock workflow")
-	}
-	defer func() {
-		if err == nil { // unlock only successful operations
-			srv.r.unlockWorkflow(req.Workflow.Id, l.id)
-		}
-	}()
+// 	l := srv.r.lockWorkflow(ctx, req.Workflow.Id, time.Second*30)
+// 	if l == nil {
+// 		return nil, fmt.Errorf("can't lock workflow")
+// 	}
+// 	defer func() {
+// 		if err == nil { // unlock only successful operations
+// 			srv.r.unlockWorkflow(req.Workflow.Id, l.id)
+// 		}
+// 	}()
 
-	old := srv.r.getWorkflow(req.Workflow.Id)
-	if old != nil {
-		return nil, fmt.Errorf("already has workflow with same ID")
-	}
+// 	old := srv.r.getWorkflow(req.Workflow.Id)
+// 	if old != nil {
+// 		return nil, fmt.Errorf("already has workflow with same ID")
+// 	}
 
-	toCreate := req.Workflow.Threads
+// 	toCreate := req.Workflow.Threads
 
-	// If thread called new workflow inside - create this workflow.
-	var toCall []*Workflow
-	for _, t := range toCreate {
-		if t.Call != nil {
-			p, err := srv.prepareWorkflow(t.Call)
-			if err != nil {
-				return nil, fmt.Errorf("calling workflow: %v", err)
-			}
-			toCall = append(toCall, p)
-		}
-		if t.Select != nil {
-			for _, c := range t.Select.Cases {
-				if c.Chan == "" {
-					continue
-				}
-				ch := srv.r.dbGetChan(c.Chan)
-				if ch == nil {
-					return nil, fmt.Errorf("channel %v not found", c.Chan)
-				}
-				if c.DataType != "" && c.DataType != ch.DataType {
-					return nil, fmt.Errorf("Channel dataType mismatch: want %v, has %v", c.DataType, ch.DataType)
-				}
-				if c.Op == Case_Send {
-					err := srv.ValidateType(ch.DataType, c.Data)
-					if err != nil {
-						return nil, fmt.Errorf("Channel %v data validation failed: %v", c.Chan, err)
-					}
-				}
-			}
-		}
-	}
+// 	// If thread called new workflow inside - create this workflow.
+// 	var toCall []*Workflow
+// 	for _, t := range toCreate {
+// 		if t.Call != nil {
+// 			p, err := srv.prepareWorkflow(t.Call)
+// 			if err != nil {
+// 				return nil, fmt.Errorf("calling workflow: %v", err)
+// 			}
+// 			toCall = append(toCall, p)
+// 		}
+// 		if t.Select != nil {
+// 			for _, c := range t.Select.Cases {
+// 				if c.Chan == "" {
+// 					continue
+// 				}
+// 				ch := srv.r.dbGetChan(c.Chan)
+// 				if ch == nil {
+// 					return nil, fmt.Errorf("channel %v not found", c.Chan)
+// 				}
+// 				if c.DataType != "" && c.DataType != ch.DataType {
+// 					return nil, fmt.Errorf("Channel dataType mismatch: want %v, has %v", c.DataType, ch.DataType)
+// 				}
+// 				if c.Op == Case_Send {
+// 					err := srv.ValidateType(ch.DataType, c.Data)
+// 					if err != nil {
+// 						return nil, fmt.Errorf("Channel %v data validation failed: %v", c.Chan, err)
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
 
-	// write to DB
-	for {
-		srv.r.batchMu.Lock()
-		if len(srv.r.updates) >= 1000 {
-			srv.r.batchMu.Unlock()
-			continue
-		}
-		break
-	}
-	srv.r.updates = append(srv.r.updates, workflowUpdate{
-		Workflow:       req.Workflow,
-		ThreadsToBlock: toCreate,
-	})
+// 	// write to DB
+// 	for {
+// 		srv.r.batchMu.Lock()
+// 		if len(srv.r.updates) >= 1000 {
+// 			srv.r.batchMu.Unlock()
+// 			continue
+// 		}
+// 		break
+// 	}
+// 	srv.r.updates = append(srv.r.updates, workflowUpdate{
+// 		Workflow:       req.Workflow,
+// 		ThreadsToBlock: toCreate,
+// 	})
 
-	for _, p := range toCall { // new workflows created
-		srv.r.updates = append(srv.r.updates, workflowUpdate{
-			Workflow:       p,
-			ThreadsToBlock: p.Threads,
-		})
-	}
-	cb := srv.r.done
-	srv.r.batchMu.Unlock()
-	<-cb
+// 	for _, p := range toCall { // new workflows created
+// 		srv.r.updates = append(srv.r.updates, workflowUpdate{
+// 			Workflow:       p,
+// 			ThreadsToBlock: p.Threads,
+// 		})
+// 	}
+// 	cb := srv.r.done
+// 	srv.r.batchMu.Unlock()
+// 	<-cb
 
-	return &Empty{}, nil
-}
+// 	return &Empty{}, nil
+// }
 
 // TODO: validate Channel Recv/Send Types
 
