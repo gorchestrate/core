@@ -5,18 +5,11 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"reflect"
-	"strings"
 	"time"
 
-	"github.com/gorchestrate/cmd/gorocksdb"
 	"github.com/golang/protobuf/proto"
-	"github.com/qri-io/jsonschema"
+	"github.com/gorchestrate/cmd/gorocksdb"
 )
-
-func IndexStrStr(s, s2 string) []byte {
-	return bytes.Join([][]byte{[]byte(s), []byte(s2)}, []byte{0})
-}
 
 func IndexStrInt(s string, i uint64) []byte {
 	b := make([]byte, 8)
@@ -79,7 +72,7 @@ func (h *HLC) Data() []byte {
 	return d
 }
 
-func NewThreads(new, old *Process, resumed *Thread) ([]*Thread, error) {
+func NewThreads(new, old *Workflow, resumed *Thread) ([]*Thread, error) {
 	if old == nil {
 		return new.Threads, nil
 	}
@@ -188,9 +181,9 @@ func (r *SelectRuntime) all(cfh *gorocksdb.ColumnFamilyHandle, prefix []byte) []
 	return out
 }
 
-func (r *SelectRuntime) mustGetProcess(id string) Process {
-	var s Process
-	item, err := r.db.GetCF(r.ro, r.cfhProcesses, []byte(id))
+func (r *SelectRuntime) mustGetWorkflow(id string) Workflow {
+	var s Workflow
+	item, err := r.db.GetCF(r.ro, r.cfhWorkflows, []byte(id))
 	if err != nil {
 		panic(err)
 	}
@@ -202,8 +195,8 @@ func (r *SelectRuntime) mustGetProcess(id string) Process {
 	return s
 }
 
-func (r *SelectRuntime) getProcessAPI(id string) *ProcessAPI {
-	var s ProcessAPI
+func (r *SelectRuntime) getWorkflowAPI(id string) *WorkflowAPI {
+	var s WorkflowAPI
 	item, err := r.db.GetCF(r.ro, r.cfhAPIs, []byte(id))
 	if err != nil {
 		panic(err)
@@ -219,9 +212,9 @@ func (r *SelectRuntime) getProcessAPI(id string) *ProcessAPI {
 	return &s
 }
 
-func (r *SelectRuntime) getProcess(id string) *Process {
-	var s Process
-	item, err := r.db.GetCF(r.ro, r.cfhProcesses, []byte(id))
+func (r *SelectRuntime) getWorkflow(id string) *Workflow {
+	var s Workflow
+	item, err := r.db.GetCF(r.ro, r.cfhWorkflows, []byte(id))
 	if err != nil {
 		panic(err)
 	}
@@ -251,53 +244,6 @@ func (r *SelectRuntime) getType(id string) *Type {
 		panic(err)
 	}
 	return &t
-}
-
-func isCompatible(old, new *jsonschema.Schema, path ...string) error {
-	if old.ID != new.ID {
-		return fmt.Errorf("id is different at : %v", strings.Join(path, "."))
-	}
-	if old.Format != new.Format {
-		return fmt.Errorf("format is different at : %v", strings.Join(path, "."))
-	}
-	if old.Ref != new.Ref {
-		return fmt.Errorf("ref is different at : %v", strings.Join(path, "."))
-	}
-	if old.Ref != new.Ref {
-		return fmt.Errorf("ref is different at : %v", strings.Join(path, "."))
-	}
-	// make sure all new validators are same as in old schema.
-	// if old validators were deleted - that's ok
-	for k, v := range new.Validators {
-		if !reflect.DeepEqual(old.Validators[k], v) {
-			pNew, okNew := v.(*jsonschema.AdditionalProperties)
-			pOld, okOld := old.Validators[k].(*jsonschema.AdditionalProperties)
-			if okNew && okOld {
-				err := isCompatible(pOld.Schema, pNew.Schema, append(path, "."+k)...)
-				if err != nil {
-					return err
-				}
-				for k, v := range *pOld.Properties {
-					err := isCompatible(v, (*pNew.Properties)[k], append(path, "."+k)...)
-					if err != nil {
-						return err
-					}
-				}
-			}
-
-			return fmt.Errorf("validator %v is different at : %v", k, strings.Join(path, "."))
-		}
-	}
-
-	// check old definitions are compatible with new ones
-	// if new definitions were added - that's ok
-	for k, v := range old.Definitions {
-		err := isCompatible(v, new.Definitions[k], append(path, "."+k)...)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (r *SelectRuntime) getCallSelect(id string) *ChanSelect {
@@ -332,15 +278,15 @@ func validateString(s, name string) error {
 	return nil
 }
 
-func validateAndFillThread(p *Process, t *Thread) error {
-	if t.Process == "" {
-		t.Process = p.Id
+func validateAndFillThread(p *Workflow, t *Thread) error {
+	if t.Workflow == "" {
+		t.Workflow = p.Id
 	}
 	if t.Service == "" {
 		t.Service = p.Service
 	}
-	if t.Process != p.Id {
-		return fmt.Errorf("thread process id mismatch")
+	if t.Workflow != p.Id {
+		return fmt.Errorf("thread workflow id mismatch")
 	}
 	if t.Service != p.Service {
 		return fmt.Errorf("thread service name mismatch")
@@ -445,8 +391,7 @@ func validateAndFillThread(p *Process, t *Thread) error {
 	return nil
 }
 
-
-func (s *Process) HasThread(id string) bool {
+func (s *Workflow) HasThread(id string) bool {
 	for _, sel := range s.Threads {
 		if sel.Id == id {
 			return true
@@ -455,7 +400,7 @@ func (s *Process) HasThread(id string) bool {
 	return false
 }
 
-func (s *Process) SetThread(new *Thread) (created bool) {
+func (s *Workflow) SetThread(new *Thread) (created bool) {
 	for i, sel := range s.Threads {
 		if sel.Id == new.Id {
 			s.Threads[i] = new

@@ -10,4 +10,3 @@ run:
 
 proto:
 	protoc --go_out=plugins=grpc:. *.proto
-	protoc --go_out=plugins=grpc:./bench *.proto
