@@ -6,26 +6,29 @@ The main idea of this service is to **not let business people model workflows**.
 
 I like the idea of workflow engines - they could make workflow implementation easier. But since their creators want to earn money - most of the workflow engines are business-oriented, rather than programmer-oriented.
 
-What I want is a workflow system created **by programmers for programmers**. One that I will really use myself to model workflows for whole my company. One that will not require you to spend a week to setup 9 node cluster using fancy technologies.
+What I want is a workflow system created **by programmers for programmers**. One that I could use myself to model workflows and won't have to spend a week setting up 9 node cluster with unclear instructions.
+
+Just look at example repo: https://github.com/gorchestrate/pizzaapp
+Or create your own workflow using Gorchestrate SDK for Go https://github.com/gorchestrate/async
 
 ### Features
 
 #### Linearized consistency
-    All updates to the workflows are done with linearized consistency, i.e. applied one after another.
-    If one process is receiving message on 2 channels - he will always get only 1 message. And only 1 message will be sent.
+All updates to the workflows are done with linearized consistency, i.e. applied one after another.
+If one process is receiving message on 2 channels - he will always get only 1 message. And only 1 message will be sent.
 
 #### High Performance
-    You can expect >10k req/sec thoughput on a 4xCPU machine with regionally-replicated SSD storage.
+You can expect >10k req/sec thoughput on a 4xCPU machine with regionally-replicated SSD storage.
     
-    Typical latencies are ~15ms. If one workflow is sending on channel "1" - the other workflow listening on that channel will receive message within ~30ms. Since all writes to SSD are batched - increasing throughput from 100 req/sec to 200 req/sec will not decrease latency.
+Typical latencies are ~15ms. If one workflow is sending on channel "1" - the other workflow listening on that channel will receive message within ~30ms. Since all writes to SSD are batched - increasing throughput from 100 req/sec to 200 req/sec will not decrease latency.
 
 #### Correctness
-    All operations on workflows are executed atomically. Workflows are processed with **Exactly-once** semantics.
-    Only one instance of workflow can be processed by client in a single point of time.
+All operations on workflows are executed atomically. Workflows are processed with **Exactly-once** semantics.
+Only one instance of workflow can be processed by client in a single point of time.
 
 
 #### Integration
-    Gorchestrate is language-agnostic - you can define your workflows in any language/tools you want. Gorchestrate manages communication - you manage workflow logic.
+Gorchestrate is language-agnostic - you can define your workflows in any language/tools you want. Gorchestrate manages communication - you manage workflow logic.
 
 
 ### Details
