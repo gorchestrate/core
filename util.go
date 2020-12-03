@@ -410,3 +410,77 @@ func (s *Workflow) SetThread(new *Thread) (created bool) {
 	s.Threads = append(s.Threads, new)
 	return true
 }
+
+func (w *Call) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		Id         string
+		Name       string
+		Input      json.RawMessage
+		InputType  string
+		OutputType string
+	}{
+		Id:         w.Id,
+		Name:       w.Name,
+		Input:      w.Input,
+		InputType:  w.InputType,
+		OutputType: w.OutputType,
+	})
+}
+
+func (w *Case) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		ToStatus string
+		Op       Case_Op
+		Chan     string
+		Time     uint64
+		Data     json.RawMessage
+		DataType string
+	}{
+		ToStatus: w.ToStatus,
+		Op:       w.Op,
+		Chan:     w.Chan,
+		Time:     w.Time,
+		Data:     w.Data,
+		DataType: w.DataType,
+	})
+}
+
+func (w *Select) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		Cases         []*Case
+		UnblockedCase uint64
+		RecvData      json.RawMessage
+		Result        Select_Result
+	}{
+		Cases:         w.Cases,
+		UnblockedCase: w.UnblockedCase,
+		RecvData:      w.RecvData,
+		Result:        w.Result,
+	})
+}
+
+func (w *Workflow) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		Id        string
+		Name      string
+		Service   string
+		Status    Workflow_Status
+		Threads   []*Thread
+		State     json.RawMessage
+		Input     json.RawMessage
+		Output    json.RawMessage
+		Version   uint64
+		UpdatedAt uint64
+	}{
+		Id:        w.Id,
+		Name:      w.Name,
+		Service:   w.Service,
+		Status:    w.Status,
+		Threads:   w.Threads,
+		State:     w.State,
+		Input:     w.Input,
+		Output:    w.Output,
+		Version:   w.Version,
+		UpdatedAt: w.UpdatedAt,
+	})
+}

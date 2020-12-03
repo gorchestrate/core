@@ -8,6 +8,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/araddon/qlbridge/expr"
+	"github.com/araddon/qlbridge/value"
+	"github.com/araddon/qlbridge/vm"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorchestrate/cmd/gorocksdb"
 	"github.com/qri-io/jsonschema"
@@ -29,6 +32,57 @@ func (srv *Server) GetWorkflow(ctx context.Context, req *GetWorkflowReq) (*Workf
 	return p, nil
 }
 
+func (srv *Server) FindWorkflows(ctx context.Context, req *FindWorkflowsReq) (*FindWorkflowsResp, error) {
+	var ex expr.Node
+	if req.Filter != "" {
+		var err error
+		ex, err = expr.ParseExpression(req.Filter)
+		if err != nil {
+			return nil, fmt.Errorf("filter parse: %v", err)
+		}
+	}
+
+	opts := gorocksdb.NewDefaultReadOptions()
+	it := srv.r.db.NewIteratorCF(opts, srv.r.cfhWorkflowEvents)
+	defer it.Close()
+
+	ret := &FindWorkflowsResp{
+		Workflows: []*Workflow{},
+	}
+	for it.Seek(IndexInt(req.From + 1)); it.Valid(); it.Next() {
+		select {
+		case <-ctx.Done():
+			break
+		default:
+		}
+		req.Scanlimit--
+		if req.Scanlimit != 0 && req.Scanlimit < 0 {
+			break
+		}
+		var evt WorkflowEvent
+		err := proto.Unmarshal(it.Value().Data(), &evt)
+		if err != nil {
+			panic(err)
+		}
+		if req.To != 0 && evt.Workflow.UpdatedAt > req.To {
+			break
+		}
+		// filter
+		if ex != nil {
+			val, ok := vm.Eval(WorkflowExpr{Workflow: evt.Workflow}, ex)
+			if !ok || val == nil || val.Nil() {
+				continue
+			}
+			v, ok := val.(value.BoolValue)
+			if !ok || !v.Val() {
+				continue
+			}
+		}
+		ret.Workflows = append(ret.Workflows, evt.Workflow)
+	}
+	return ret, nil
+}
+
 func (srv *Server) ListenWorkflowsUpdates(req *ListenWorkflowsUpdatesReq, stream Runtime_ListenWorkflowsUpdatesServer) error {
 	opts := gorocksdb.NewDefaultReadOptions()
 	cur := req.From
@@ -46,11 +100,11 @@ func (srv *Server) ListenWorkflowsUpdates(req *ListenWorkflowsUpdatesReq, stream
 			if err != nil {
 				panic(err)
 			}
-			if evt.Workflow.Service != req.Service { // TODO: better filters?
-				it.Value().Free()
-				it.Key().Free()
-				continue
-			}
+			// if evt.Workflow.Service != req.Service { // TODO: better filters?
+			// 	it.Value().Free()
+			// 	it.Key().Free()
+			// 	continue
+			// }
 			err = stream.Send(&evt)
 			it.Value().Free()
 			it.Key().Free()
@@ -68,6 +122,14 @@ func (srv *Server) ListenWorkflowsUpdates(req *ListenWorkflowsUpdatesReq, stream
 		it.Close()
 		time.Sleep(time.Millisecond * 100) // TODO: dynamic wait time?, i.e. based on number of searches with no success.
 	}
+}
+
+func (srv *Server) DeleteChan(ctx context.Context, req *DeleteChanReq) (*Empty, error) {
+	return nil, nil
+}
+
+func (srv *Server) DeleteType(ctx context.Context, req *Type) (*Empty, error) {
+	return nil, nil
 }
 
 // TODO: also make MakeChan a deferred operation?
@@ -271,6 +333,11 @@ func (srv *Server) ValidateType(id string, data []byte) error {
 	return nil
 }
 
+// When locking workflow we have to remember that there may be unblocked selects pending for it
+// We allow clients to lock and modify workflow inflight, even if it can be incorrectly handled
+// by unblocked selects.
+// This is needed for clients to avoid deadlocks/ infinite loops or other kind of issues that has
+// to be handled in unsafe manner.
 func (srv *Server) LockWorkflow(ctx context.Context, req *LockWorkflowReq) (*LockedWorkflow, error) {
 	err := validateString(req.Id, "workflow id")
 	if err != nil {
@@ -290,108 +357,6 @@ func (srv *Server) LockWorkflow(ctx context.Context, req *LockWorkflowReq) (*Loc
 		LockId:   l.id,
 	}, nil
 }
-
-// func (srv *Server) PutWorkflow(ctx context.Context, req *PutWorkflowReq) (out *Empty, err error) {
-// 	err = validateString(req.Workflow.Id, "workflow id")
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	err = validateString(req.Workflow.Name, "workflow name")
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	err = validateString(req.Workflow.Service, "workflow service")
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if req.Workflow.Status != Workflow_Running {
-// 		return nil, fmt.Errorf("unexpected workflow status: %v", req.Workflow.Status)
-// 	}
-
-// 	for _, t := range req.Workflow.Threads {
-// 		err := validateAndFillThread(req.Workflow, t)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("thread %v: %v", t.Id, err)
-// 		}
-// 	}
-
-// 	l := srv.r.lockWorkflow(ctx, req.Workflow.Id, time.Second*30)
-// 	if l == nil {
-// 		return nil, fmt.Errorf("can't lock workflow")
-// 	}
-// 	defer func() {
-// 		if err == nil { // unlock only successful operations
-// 			srv.r.unlockWorkflow(req.Workflow.Id, l.id)
-// 		}
-// 	}()
-
-// 	old := srv.r.getWorkflow(req.Workflow.Id)
-// 	if old != nil {
-// 		return nil, fmt.Errorf("already has workflow with same ID")
-// 	}
-
-// 	toCreate := req.Workflow.Threads
-
-// 	// If thread called new workflow inside - create this workflow.
-// 	var toCall []*Workflow
-// 	for _, t := range toCreate {
-// 		if t.Call != nil {
-// 			p, err := srv.prepareWorkflow(t.Call)
-// 			if err != nil {
-// 				return nil, fmt.Errorf("calling workflow: %v", err)
-// 			}
-// 			toCall = append(toCall, p)
-// 		}
-// 		if t.Select != nil {
-// 			for _, c := range t.Select.Cases {
-// 				if c.Chan == "" {
-// 					continue
-// 				}
-// 				ch := srv.r.dbGetChan(c.Chan)
-// 				if ch == nil {
-// 					return nil, fmt.Errorf("channel %v not found", c.Chan)
-// 				}
-// 				if c.DataType != "" && c.DataType != ch.DataType {
-// 					return nil, fmt.Errorf("Channel dataType mismatch: want %v, has %v", c.DataType, ch.DataType)
-// 				}
-// 				if c.Op == Case_Send {
-// 					err := srv.ValidateType(ch.DataType, c.Data)
-// 					if err != nil {
-// 						return nil, fmt.Errorf("Channel %v data validation failed: %v", c.Chan, err)
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	// write to DB
-// 	for {
-// 		srv.r.batchMu.Lock()
-// 		if len(srv.r.updates) >= 1000 {
-// 			srv.r.batchMu.Unlock()
-// 			continue
-// 		}
-// 		break
-// 	}
-// 	srv.r.updates = append(srv.r.updates, workflowUpdate{
-// 		Workflow:       req.Workflow,
-// 		ThreadsToBlock: toCreate,
-// 	})
-
-// 	for _, p := range toCall { // new workflows created
-// 		srv.r.updates = append(srv.r.updates, workflowUpdate{
-// 			Workflow:       p,
-// 			ThreadsToBlock: p.Threads,
-// 		})
-// 	}
-// 	cb := srv.r.done
-// 	srv.r.batchMu.Unlock()
-// 	<-cb
-
-// 	return &Empty{}, nil
-// }
-
-// TODO: validate Channel Recv/Send Types
 
 func (srv *Server) UpdateWorkflow(ctx context.Context, req *UpdateWorkflowReq) (out *Empty, err error) {
 	err = validateString(req.Workflow.Id, "workflow id")

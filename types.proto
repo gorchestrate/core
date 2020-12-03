@@ -1,6 +1,6 @@
 syntax = "proto3";
-package main;
-
+package core;
+option go_package="main";
 
 message WorkflowAPI {        // API for starting the workflow and getting results
     string name = 1;
@@ -173,6 +173,10 @@ message CloseChanReq {
     repeated string ids = 1;
 }
 
+message DeleteChanReq {
+    repeated string ids = 1;
+}
+
 message ListChansReq {
     string id = 1;
     string from = 2;
@@ -215,13 +219,26 @@ message LockWorkflowReq {
 
 message ListenWorkflowsUpdatesReq {
     uint64 from = 1;
-    string service = 2;
+    string filter = 3;
+}
+
+message FindWorkflowsReq {
+    uint64 from = 1;
+    uint64 to = 2;
+    uint64 limit = 3;
+    uint64 scanlimit = 5;
+    string filter = 4;
+}
+
+message FindWorkflowsResp {
+    repeated Workflow workflows = 1;
 }
 
 message WorkflowEvent {
     Workflow workflow = 1;
     Thread thread = 2;
 }
+
 
 service Runtime {
 
@@ -255,21 +272,27 @@ service Runtime {
     // Listen for updates states. You can use this to sync data with other DB's, for ex. Search / Reports / etc.
     rpc ListenWorkflowsUpdates(ListenWorkflowsUpdatesReq) returns (stream WorkflowEvent);
 
+    rpc FindWorkflows(FindWorkflowsReq) returns (FindWorkflowsResp);
+
     rpc MakeChan(MakeChanReq) returns (Empty);
 
     rpc ListChans(ListChansReq) returns (ListChansResp);
 
     rpc CloseChan(CloseChanReq) returns (Empty);
 
+    rpc DeleteChan(DeleteChanReq) returns (Empty);
+
 
     rpc PutType(Type) returns (Empty);
     
     rpc ListTypes(ListTypesReq) returns (ListTypesResp);
 
+    rpc DeleteType(Type) returns (Empty);
+
 
     rpc PutAPI(WorkflowAPI) returns (Empty);
 
-    rpc DeleteAPI(WorkflowAPI) returns (Empty);
-    
     rpc ListAPIs(ListAPIsReq) returns (ListAPIsResp);    
+
+    rpc DeleteAPI(WorkflowAPI) returns (Empty);    
 }

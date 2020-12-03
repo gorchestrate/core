@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"log"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -64,6 +66,16 @@ func main() {
 		err = server.Serve(lis)
 		if err != nil {
 			logrus.Fatal(err)
+		}
+	}()
+
+	go func() {
+		api := HTTPAPI{
+			srv: s,
+		}
+		err := http.ListenAndServe(":8081", api.Router())
+		if err != nil {
+			log.Fatal(err)
 		}
 	}()
 

@@ -9,6 +9,7 @@ I like the idea of workflow engines - they could make workflow implementation ea
 What I want is a workflow system created **by programmers for programmers**. One that I could use myself to model workflows and won't have to spend a week setting up 9 node cluster with unclear instructions.
 
 Just look at example repo: https://github.com/gorchestrate/pizzaapp
+
 Or create your own workflow using Gorchestrate SDK for Go https://github.com/gorchestrate/async
 
 ### Features
@@ -39,7 +40,7 @@ Gorchestrate-Core runs on embedded RocksDB database and stores following entitie
 * types      - type definitions of data sent to channels and new workflows.
 * APIs       - Workflow definitions that allow us to start worklows using name & input data
 * events     - events keep recovers of every change to workflow state
-All operations over workflows are atomic and executed with linearized consistency level.
+
 
 Each workflow can have multiple *threads* - i.e. blocking conditions for the process. 
 Blocking conditions can be:
@@ -62,8 +63,7 @@ If you want to update process manually:
 
 If you want to start new worflow - call *NewWorkflow()*
 
-
-Refer to **types.proto** document for API explanation.
+Refer to **types.proto** for API docs.
 
 
 
