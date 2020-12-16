@@ -16,6 +16,7 @@ import (
 	"github.com/qri-io/jsonschema"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/tidwall/gjson"
 )
 
 type Server struct {
@@ -319,6 +320,12 @@ func (srv *Server) ListChans(ctx context.Context, req *ListChansReq) (*ListChans
 }
 
 func (srv *Server) ValidateType(id string, data []byte) error {
+	if id == "async.JSON" && !gjson.ValidBytes(data) {
+		return fmt.Errorf("schema validation: %v is not a valid JSON", string(data))
+	}
+	if id == "async.None" && string(data) != "" {
+		return fmt.Errorf("schema validation: %v is not empty value for type async.None", string(data))
+	}
 	stype := srv.r.getType(id)
 	pType := jsonschema.RootSchema{}
 	err := json.Unmarshal(stype.JsonSchema, &pType)

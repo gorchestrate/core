@@ -230,6 +230,12 @@ func (r *SelectRuntime) getWorkflow(id string) *Workflow {
 }
 
 func (r *SelectRuntime) getType(id string) *Type {
+	if id == "async.None" || id == "async.JSON" { // builtin types
+		return &Type{
+			Id:      id,
+			Version: 1,
+		}
+	}
 	var t Type
 	item, err := r.db.GetCF(r.ro, r.cfhTypes, []byte(id))
 	if err != nil {
