@@ -316,7 +316,7 @@ func validateAndFillThread(p *Workflow, t *Thread) error {
 		if err != nil {
 			return err
 		}
-		if len(t.Call.Input) == 0 {
+		if t.Call.InputType != "async.None" && len(t.Call.Input) == 0 {
 			return fmt.Errorf("Call input is empty")
 		}
 	}
@@ -347,11 +347,9 @@ func validateAndFillThread(p *Workflow, t *Thread) error {
 				if err != nil {
 					return err
 				}
-				if c.DataType != "" {
-					err = validateString(c.DataType, "select data type "+msg)
-					if err != nil {
-						return err
-					}
+				err = validateString(c.DataType, "select data type "+msg)
+				if err != nil {
+					return err
 				}
 				if c.Time != 0 {
 					return fmt.Errorf("unexpected 'Time' " + msg)
@@ -371,8 +369,8 @@ func validateAndFillThread(p *Workflow, t *Thread) error {
 				if c.Time != 0 {
 					return fmt.Errorf("unexpected 'Time' " + msg)
 				}
-				if len(c.Data) == 0 {
-					return fmt.Errorf("send operation can't send empty data " + msg)
+				if c.DataType != "async.None" && len(c.Data) == 0 {
+					return fmt.Errorf("send operation data is empty " + msg)
 				}
 			case Case_Time:
 				if c.Time == 0 {
