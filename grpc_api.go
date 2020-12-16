@@ -166,7 +166,7 @@ func (srv *Server) MakeChan(ctx context.Context, req *MakeChanReq) (*Empty, erro
 	return &Empty{}, nil
 }
 
-func (srv *Server) ListAPIs(ctx context.Context, req *ListAPIsReq) (*ListAPIsResp, error) {
+func (srv *Server) ListWorkflowAPIs(ctx context.Context, req *ListWorkflowAPIsReq) (*ListWorkflowAPIsResp, error) {
 	if req.Id != "" {
 		item, err := srv.r.db.GetCF(srv.r.ro, srv.r.cfhAPIs, []byte(req.Id))
 		if err != nil {
@@ -174,11 +174,11 @@ func (srv *Server) ListAPIs(ctx context.Context, req *ListAPIsReq) (*ListAPIsRes
 		}
 		defer item.Free()
 		if !item.Exists() {
-			return &ListAPIsResp{}, nil
+			return &ListWorkflowAPIsResp{}, nil
 		}
 		var p WorkflowAPI
 		Unmarshal(item.Data(), &p)
-		return &ListAPIsResp{Apis: []*WorkflowAPI{&p}}, nil
+		return &ListWorkflowAPIsResp{Apis: []*WorkflowAPI{&p}}, nil
 	}
 	ret := []*WorkflowAPI{}
 	opts := gorocksdb.NewDefaultReadOptions()
@@ -194,12 +194,12 @@ func (srv *Server) ListAPIs(ctx context.Context, req *ListAPIsReq) (*ListAPIsRes
 		it.Key().Free()
 		it.Value().Free()
 	}
-	return &ListAPIsResp{
+	return &ListWorkflowAPIsResp{
 		Apis: ret,
 	}, nil
 }
 
-func (srv *Server) PutAPI(ctx context.Context, req *WorkflowAPI) (*Empty, error) {
+func (srv *Server) PutWorkflowAPI(ctx context.Context, req *WorkflowAPI) (*Empty, error) {
 	if srv.r.getType(req.Input) == nil {
 		return nil, fmt.Errorf("Input type not found")
 	}
@@ -226,7 +226,7 @@ func (srv *Server) PutAPI(ctx context.Context, req *WorkflowAPI) (*Empty, error)
 	return &Empty{}, srv.r.db.Write(srv.r.wo, wb)
 }
 
-func (srv *Server) DeleteAPI(ctx context.Context, req *WorkflowAPI) (*Empty, error) {
+func (srv *Server) DeleteWorkflowAPI(ctx context.Context, req *WorkflowAPI) (*Empty, error) {
 	if req.Name == "" {
 		return nil, fmt.Errorf("API name is empty")
 	}
