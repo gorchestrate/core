@@ -143,11 +143,9 @@ func (srv *Server) MakeChan(ctx context.Context, req *MakeChanReq) (*Empty, erro
 	if req.Chan.BufSize != 0 {
 		return nil, fmt.Errorf("buf size is set by server")
 	}
-	if req.Chan.DataType != "" {
-		pType := srv.r.getType(req.Chan.DataType)
-		if pType == nil {
-			return nil, fmt.Errorf("can't find type '%v' for channel", req.Chan.DataType)
-		}
+	pType := srv.r.getType(req.Chan.DataType)
+	if pType == nil {
+		return nil, fmt.Errorf("can't find type '%v' for channel", req.Chan.DataType)
 	}
 	for {
 		srv.r.batchMu.Lock()
@@ -202,20 +200,14 @@ func (srv *Server) ListWorkflowAPIs(ctx context.Context, req *ListWorkflowAPIsRe
 }
 
 func (srv *Server) PutWorkflowAPI(ctx context.Context, req *WorkflowAPI) (*Empty, error) {
-	if req.Input != "" {
-		if srv.r.getType(req.Input) == nil {
-			return nil, fmt.Errorf("Input type not found")
-		}
+	if srv.r.getType(req.Input) == nil {
+		return nil, fmt.Errorf("Input type not found")
 	}
-	if req.Output != "" {
-		if srv.r.getType(req.Output) == nil {
-			return nil, fmt.Errorf("Output type not found")
-		}
+	if srv.r.getType(req.Output) == nil {
+		return nil, fmt.Errorf("Output type not found")
 	}
-	if req.State != "" {
-		if srv.r.getType(req.State) == nil {
-			return nil, fmt.Errorf("State type not found")
-		}
+	if srv.r.getType(req.State) == nil {
+		return nil, fmt.Errorf("State type not found")
 	}
 	if req.Name == "" {
 		return nil, fmt.Errorf("API name is empty")
@@ -327,9 +319,6 @@ func (srv *Server) ListChans(ctx context.Context, req *ListChansReq) (*ListChans
 }
 
 func (srv *Server) ValidateType(id string, data []byte) error {
-	if id == "" {
-		return nil
-	}
 	stype := srv.r.getType(id)
 	pType := jsonschema.RootSchema{}
 	err := json.Unmarshal(stype.JsonSchema, &pType)
