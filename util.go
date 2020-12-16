@@ -358,9 +358,11 @@ func validateAndFillThread(p *Workflow, t *Thread) error {
 				if err != nil {
 					return err
 				}
-				err = validateString(c.DataType, "select data type "+msg)
-				if err != nil {
-					return err
+				if c.DataType != "" {
+					err = validateString(c.DataType, "select data type "+msg)
+					if err != nil {
+						return err
+					}
 				}
 				if c.Time != 0 {
 					return fmt.Errorf("unexpected 'Time' " + msg)

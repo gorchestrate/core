@@ -143,9 +143,11 @@ func (srv *Server) MakeChan(ctx context.Context, req *MakeChanReq) (*Empty, erro
 	if req.Chan.BufSize != 0 {
 		return nil, fmt.Errorf("buf size is set by server")
 	}
-	pType := srv.r.getType(req.Chan.DataType)
-	if pType == nil {
-		return nil, fmt.Errorf("can't find type '%v' for channel", req.Chan.DataType)
+	if req.Chan.DataType != "" {
+		pType := srv.r.getType(req.Chan.DataType)
+		if pType == nil {
+			return nil, fmt.Errorf("can't find type '%v' for channel", req.Chan.DataType)
+		}
 	}
 	for {
 		srv.r.batchMu.Lock()
@@ -200,14 +202,20 @@ func (srv *Server) ListWorkflowAPIs(ctx context.Context, req *ListWorkflowAPIsRe
 }
 
 func (srv *Server) PutWorkflowAPI(ctx context.Context, req *WorkflowAPI) (*Empty, error) {
-	if srv.r.getType(req.Input) == nil {
-		return nil, fmt.Errorf("Input type not found")
+	if req.Input != "" {
+		if srv.r.getType(req.Input) == nil {
+			return nil, fmt.Errorf("Input type not found")
+		}
 	}
-	if srv.r.getType(req.Output) == nil {
-		return nil, fmt.Errorf("Output type not found")
+	if req.Output != "" {
+		if srv.r.getType(req.Output) == nil {
+			return nil, fmt.Errorf("Output type not found")
+		}
 	}
-	if srv.r.getType(req.State) == nil {
-		return nil, fmt.Errorf("State type not found")
+	if req.State != "" {
+		if srv.r.getType(req.State) == nil {
+			return nil, fmt.Errorf("State type not found")
+		}
 	}
 	if req.Name == "" {
 		return nil, fmt.Errorf("API name is empty")
@@ -319,6 +327,9 @@ func (srv *Server) ListChans(ctx context.Context, req *ListChansReq) (*ListChans
 }
 
 func (srv *Server) ValidateType(id string, data []byte) error {
+	if id == "" {
+		return nil
+	}
 	stype := srv.r.getType(id)
 	pType := jsonschema.RootSchema{}
 	err := json.Unmarshal(stype.JsonSchema, &pType)
@@ -333,17 +344,30 @@ func (srv *Server) ValidateType(id string, data []byte) error {
 	return nil
 }
 
+func (srv *Server) ExtendLock(ctx context.Context, req *ExtendLockReq) (*Empty, error) {
+	if req.Seconds == 0 {
+		req.Seconds = 30
+	}
+	if !srv.r.extendWorkflowLock(req.Id, req.Lockid, time.Second*time.Duration(req.Seconds)) {
+		return nil, fmt.Errorf("lock expired")
+	}
+	return &Empty{}, nil
+}
+
 // When locking workflow we have to remember that there may be unblocked selects pending for it
 // We allow clients to lock and modify workflow inflight, even if it can be incorrectly handled
 // by unblocked selects.
 // This is needed for clients to avoid deadlocks/ infinite loops or other kind of issues that has
 // to be handled in unsafe manner.
 func (srv *Server) LockWorkflow(ctx context.Context, req *LockWorkflowReq) (*LockedWorkflow, error) {
+	if req.Seconds == 0 {
+		req.Seconds = 30
+	}
 	err := validateString(req.Id, "workflow id")
 	if err != nil {
 		return nil, err
 	}
-	l := srv.r.lockWorkflow(ctx, req.Id, time.Second*30)
+	l := srv.r.lockWorkflow(ctx, req.Id, time.Second*time.Duration(req.Seconds))
 	if l == nil {
 		return nil, fmt.Errorf("can't lock workflow")
 	}

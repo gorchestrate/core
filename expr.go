@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"time"
 
 	"github.com/araddon/qlbridge/value"
@@ -14,10 +13,7 @@ type WorkflowExpr struct {
 }
 
 func (e WorkflowExpr) Get(key string) (outV value.Value, ok bool) {
-	defer func() {
-		log.Printf("Get %v %v", key, outV)
-	}()
-	d, err := json.Marshal(e)
+	d, err := json.Marshal(e) // TODO: benchrmark / optimize this
 	if err != nil {
 		panic(err)
 	}
@@ -25,9 +21,6 @@ func (e WorkflowExpr) Get(key string) (outV value.Value, ok bool) {
 }
 
 func GetGJson(data []byte, expr string) (outV value.Value, ok bool) {
-	defer func() {
-		log.Printf("GetJson %v %v %v", expr, outV, string(data))
-	}()
 	v := gjson.GetBytes(data, expr)
 	switch v.Type {
 	case gjson.Null:
@@ -48,10 +41,9 @@ func GetGJson(data []byte, expr string) (outV value.Value, ok bool) {
 }
 
 func (w WorkflowExpr) Row() map[string]value.Value {
-	log.Print("Row()")
 	return nil
 }
+
 func (w WorkflowExpr) Ts() time.Time {
-	log.Print("TS()")
 	return time.Now()
 }
