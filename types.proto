@@ -69,6 +69,10 @@ message  Select {
     uint64 unblockedCase = 2;  // index of case that was unblocked
     bytes recvData = 3;        // data received (in case of Recv operation)
     bool closed = 4;           // if send/recv was done on closed channel
+    
+	//string Workflow     = 1; // TODO: maintain source workflow path?
+	//string Thread       = 2; 
+	//string Index        = 3; 
 }
 
 message  Case  {
@@ -122,9 +126,8 @@ message  WaitCallIndex {
 // For internal use
 message  BufData {
 	//string Workflow     = 1; // TODO: maintain source workflow path?
-	//string Select    = 2; 
-	//string Group     = 3; 
-	//string ToStatus  = 4; 
+	//string Thread       = 2; 
+	//string Index        = 3; 
     string Chan = 1;
 	bytes Data       = 5; 
     uint64 clock     = 6;

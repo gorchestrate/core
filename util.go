@@ -230,7 +230,7 @@ func (r *SelectRuntime) getWorkflow(id string) *Workflow {
 }
 
 func (r *SelectRuntime) getType(id string) *Type {
-	if id == "async.None" || id == "async.JSON" { // builtin types
+	if id == "async.None" { // builtin types
 		return &Type{
 			ID:      id,
 			Version: 1,
@@ -418,13 +418,13 @@ func (s *Workflow) SetThread(new *Thread) (created bool) {
 func (w *Call) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		ID         string
-		API       string
+		API        string
 		Input      json.RawMessage
 		InputType  string
 		OutputType string
 	}{
 		ID:         w.ID,
-		API:       w.API,
+		API:        w.API,
 		Input:      w.Input,
 		InputType:  w.InputType,
 		OutputType: w.OutputType,

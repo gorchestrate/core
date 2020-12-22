@@ -16,14 +16,9 @@ func main() {
 	viper.SetDefault("LogLevel", "Debug")
 	viper.SetDefault("DBDir", "./db")
 	viper.SetDefault("GRPCPort", ":9090")
-	viper.SetDefault("HTTPPort", ":8080")
-	viper.SetDefault("ChanCache", 500)
-	viper.SetDefault("ProcessCache", 500)
 	viper.SetDefault("RocksDBThreads", 4)
-	viper.SetDefault("BTreeSize", 64)
-	viper.SetDefault("DefaultGroupPool", 5000)
 
-	viper.SetConfigName("config")
+	viper.SetConfigName("gcore-config")
 	viper.AddConfigPath(".")    // optionally look for config in the working directory
 	err := viper.ReadInConfig() // Find and read the config file
 	if err != nil {             // Handle errors reading the config file
@@ -49,18 +44,13 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	s := &Server{
-		r:     r,
-		procs: map[string]*Proc{},
-	}
-
 	go func() {
 		lis, err := net.Listen("tcp", viper.GetString("GRPCPort"))
 		if err != nil {
 			logrus.Fatalf("failed to listen: %v", err)
 		}
 		server := grpc.NewServer()
-		RegisterRuntimeServer(server, s)
+		RegisterRuntimeServer(server, &Server{r: r, procs: map[string]*Proc{}})
 		err = server.Serve(lis)
 		if err != nil {
 			logrus.Fatal(err)

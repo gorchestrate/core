@@ -49,14 +49,15 @@ func (srv *Server) FindWorkflows(ctx context.Context, req *FindWorkflowsReq) (*F
 	ret := &FindWorkflowsResp{
 		Workflows: []*Workflow{},
 	}
+	scanned := uint64(0)
 	for it.Seek(IndexInt(req.From + 1)); it.Valid(); it.Next() {
 		select {
 		case <-ctx.Done():
 			break
 		default:
 		}
-		req.Scanlimit--
-		if req.Scanlimit != 0 && req.Scanlimit < 0 {
+		scanned++
+		if req.Scanlimit != 0 && scanned >= req.Scanlimit {
 			break
 		}
 		var evt WorkflowEvent
@@ -257,7 +258,7 @@ func (srv *Server) PutType(ctx context.Context, req *Type) (*Empty, error) {
 }
 
 func (srv *Server) GetType(ctx context.Context, req *GetTypeReq) (*Type, error) {
-	return nil,nil
+	return nil, nil
 }
 
 func (srv *Server) ListTypes(ctx context.Context, req *ListTypesReq) (*ListTypesResp, error) {
@@ -294,7 +295,7 @@ func (srv *Server) ListTypes(ctx context.Context, req *ListTypesReq) (*ListTypes
 }
 
 func (srv *Server) GetChan(ctx context.Context, req *GetChanReq) (*Channel, error) {
-	return nil,nil
+	return nil, nil
 }
 
 func (srv *Server) ListChans(ctx context.Context, req *ListChansReq) (*ListChansResp, error) {
