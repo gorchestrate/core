@@ -232,9 +232,9 @@ func (r *SelectRuntime) Run(ctx context.Context) error {
 			r.wb = gorocksdb.NewWriteBatchWithIndex(r.db, r.ro, r.wo)
 
 			for _, c := range newChans { // upsert channels
-				oldChan := r.getOrCreateChan(c.Id)
-				if oldChan.Id == "" {
-					r.wb.PutCF(r.cfhChannels, []byte(c.Id), Marshal(c))
+				oldChan := r.getOrCreateChan(c.ID)
+				if oldChan.ID == "" {
+					r.wb.PutCF(r.cfhChannels, []byte(c.ID), Marshal(c))
 				}
 			}
 
@@ -249,8 +249,8 @@ func (r *SelectRuntime) Run(ctx context.Context) error {
 					toUnblock := append(r.all(r.cfhChanRecv, append([]byte(cID), 0)), r.all(r.cfhChanSend, append([]byte(cID), 0))...)
 					for _, sel := range toUnblock {
 						t2 := r.mustGetBlockedThread(sel.BlockedAt)
-						t2.Select.Result = Select_Closed
-						t2.ToStatus = t2.Select.Cases[sel.Case].ToStatus
+						t2.Select.Closed = true
+						t2.Callback = t2.Select.Cases[sel.Case].Callback
 						t2.Select.UnblockedCase = sel.Case
 						r.unblockThread(t2)
 					}
@@ -260,7 +260,7 @@ func (r *SelectRuntime) Run(ctx context.Context) error {
 
 				// clean up unblocked events that were already processes
 				if u.UnblockedThread != nil {
-					r.wb.DeleteCF(r.cfhUnblockedThreads, IndexStrInt(u.UnblockedThread.Service, u.UnblockedThread.UnblockedAt))
+					r.wb.DeleteCF(r.cfhUnblockedThreads, IndexStrInt(u.Workflow.Service, u.UnblockedThread.UnblockedAt))
 				}
 
 				// process workflow update
@@ -271,11 +271,11 @@ func (r *SelectRuntime) Run(ctx context.Context) error {
 						Workflow: u.Workflow,
 						Thread:   u.UnblockedThread,
 					}))
-					r.wb.PutCF(r.cfhWorkflows, []byte(u.Workflow.Id), Marshal(u.Workflow))
+					r.wb.PutCF(r.cfhWorkflows, []byte(u.Workflow.ID), Marshal(u.Workflow))
 
 					if u.Workflow.Status == Workflow_Finished {
 						// notify workflow that was blocked
-						s := r.getCallSelect(u.Workflow.Id)
+						s := r.getCallSelect(u.Workflow.ID)
 						if s != nil {
 							t := r.mustGetBlockedThread(s.BlockedAt)
 							t.Call.Output = u.Workflow.Output
@@ -457,7 +457,7 @@ func (r *SelectRuntime) getBlockedThread(blockedAt uint64) *Thread {
 func (r *SelectRuntime) unblockThread(t *Thread) {
 	switch {
 	case t.Call != nil:
-		r.wb.DeleteCF(r.cfhCalls, []byte(t.Call.Id))
+		r.wb.DeleteCF(r.cfhCalls, []byte(t.Call.ID))
 	case t.Select != nil:
 		for _, c := range t.Select.Cases {
 			switch c.Op {
@@ -482,7 +482,7 @@ func (r *SelectRuntime) blockThread(t *Thread) {
 	t.BlockedAt = r.clock.Now()
 	switch {
 	case t.Call != nil:
-		r.wb.PutCF(r.cfhCalls, []byte(t.Call.Id), Marshal(&ChanSelect{
+		r.wb.PutCF(r.cfhCalls, []byte(t.Call.ID), Marshal(&ChanSelect{
 			BlockedAt: t.BlockedAt,
 		}))
 	case t.Select != nil:
@@ -535,9 +535,8 @@ func (r *SelectRuntime) handleTick() {
 			panic(err)
 		}
 		s2 := r.mustGetBlockedThread(cs.BlockedAt)
-		s2.Select.Result = Select_OK
 		s2.Select.UnblockedCase = cs.Case
-		s2.ToStatus = s2.Select.Cases[cs.Case].ToStatus
+		s2.Callback = s2.Select.Cases[cs.Case].Callback
 		toUnblock = append(toUnblock, s2)
 		it.Key().Free()
 		it.Value().Free()
@@ -578,8 +577,7 @@ func (r *SelectRuntime) tryBlockThread(t *Thread) {
 				if i != len(t.Select.Cases)-1 {
 					panic("default case is not the last one. request validation is broken")
 				}
-				t.Select.Result = Select_OK
-				t.ToStatus = c.ToStatus
+				t.Callback = c.Callback
 				t.Select.UnblockedCase = uint64(i)
 				t.UnblockedAt = r.clock.Now()
 				r.wb.PutCF(r.cfhUnblockedThreads, IndexStrInt(t.Service, t.UnblockedAt), Marshal(t))
@@ -587,8 +585,7 @@ func (r *SelectRuntime) tryBlockThread(t *Thread) {
 			case Case_Time:
 				// unblock only if unblock time has already passed
 				if c.Time <= uint64(time.Now().Unix()) {
-					t.Select.Result = Select_OK
-					t.ToStatus = c.ToStatus
+					t.Callback = c.Callback
 					t.Select.UnblockedCase = uint64(i)
 					t.UnblockedAt = r.clock.Now()
 					r.wb.PutCF(r.cfhUnblockedThreads, IndexStrInt(t.Service, t.UnblockedAt), Marshal(t))
@@ -598,8 +595,8 @@ func (r *SelectRuntime) tryBlockThread(t *Thread) {
 				// unblock if channel is closed
 				ch := r.getOrCreateChan(c.Chan)
 				if ch.Closed {
-					t.Select.Result = Select_Closed
-					t.ToStatus = c.ToStatus
+					t.Select.Closed = true
+					t.Callback = c.Callback
 					t.Select.UnblockedCase = uint64(i)
 					t.UnblockedAt = r.clock.Now()
 					r.wb.PutCF(r.cfhUnblockedThreads, IndexStrInt(t.Service, t.UnblockedAt), Marshal(t))
@@ -608,8 +605,7 @@ func (r *SelectRuntime) tryBlockThread(t *Thread) {
 
 				// unblock if channel is buffered and buffer is not full
 				if ch.BufMaxSize != 0 && ch.BufSize < ch.BufMaxSize {
-					t.Select.Result = Select_OK
-					t.ToStatus = c.ToStatus
+					t.Callback = c.Callback
 					t.Select.UnblockedCase = uint64(i)
 					t.UnblockedAt = r.clock.Now()
 					bufData := &BufData{
@@ -629,12 +625,10 @@ func (r *SelectRuntime) tryBlockThread(t *Thread) {
 				if p != nil {
 					s2 := r.mustGetBlockedThread(p.BlockedAt)
 
-					t.Select.Result = Select_OK
-					t.ToStatus = c.ToStatus
+					t.Callback = c.Callback
 					t.Select.UnblockedCase = uint64(i)
 
-					s2.Select.Result = Select_OK
-					s2.ToStatus = s2.Select.Cases[p.Case].ToStatus
+					s2.Callback = s2.Select.Cases[p.Case].Callback
 					s2.Select.RecvData = c.Data
 					s2.Select.UnblockedCase = p.Case
 
@@ -648,8 +642,8 @@ func (r *SelectRuntime) tryBlockThread(t *Thread) {
 				// unblock if channel is closed
 				ch := r.getOrCreateChan(c.Chan)
 				if ch.Closed && ch.BufSize == 0 {
-					t.Select.Result = Select_Closed
-					t.ToStatus = c.ToStatus
+					t.Select.Closed = true
+					t.Callback = c.Callback
 					t.Select.UnblockedCase = uint64(i)
 					t.UnblockedAt = r.clock.Now()
 					r.wb.PutCF(r.cfhUnblockedThreads, IndexStrInt(t.Service, t.UnblockedAt), Marshal(t))
@@ -658,8 +652,7 @@ func (r *SelectRuntime) tryBlockThread(t *Thread) {
 
 				// unblock if channel is buffered and buffer is not empty
 				if ch.BufMaxSize != 0 && ch.BufSize != 0 {
-					t.Select.Result = Select_OK
-					t.ToStatus = c.ToStatus
+					t.Callback = c.Callback
 					t.Select.UnblockedCase = uint64(i)
 					bufData := r.getFirstBuf(append([]byte(c.Chan), 0))
 					t.Select.RecvData = bufData.Data
@@ -673,8 +666,7 @@ func (r *SelectRuntime) tryBlockThread(t *Thread) {
 						p := r.getFirst(r.cfhChanSend, append([]byte(c.Chan), 0))
 						if p != nil {
 							s2 := r.mustGetBlockedThread(p.BlockedAt)
-							s2.Select.Result = Select_OK
-							s2.ToStatus = c.ToStatus
+							s2.Callback = c.Callback
 							s2.Select.UnblockedCase = uint64(i)
 							s2.UnblockedAt = r.clock.Now()
 							bufData := &BufData{
@@ -696,13 +688,11 @@ func (r *SelectRuntime) tryBlockThread(t *Thread) {
 				if p != nil { // unblock if we have someone to send on this channel
 					s2 := r.mustGetBlockedThread(p.BlockedAt)
 					// recv from other select
-					t.Select.Result = Select_OK
-					t.ToStatus = c.ToStatus
+					t.Callback = c.Callback
 					t.Select.UnblockedCase = uint64(i)
 					t.Select.RecvData = s2.Select.Cases[p.Case].Data
 
-					s2.Select.Result = Select_OK
-					s2.ToStatus = s2.Select.Cases[p.Case].ToStatus
+					s2.Callback = s2.Select.Cases[p.Case].Callback
 					s2.Select.UnblockedCase = p.Case
 
 					t.UnblockedAt = r.clock.Now()

@@ -77,16 +77,16 @@ func NewThreads(new, old *Workflow, resumed *Thread) ([]*Thread, error) {
 		return new.Threads, nil
 	}
 	for _, t := range old.Threads {
-		if resumed != nil && resumed.Id == t.Id { // it's ok to delete resumed thread
+		if resumed != nil && resumed.ID == t.ID { // it's ok to delete resumed thread
 			continue
 		}
-		if !new.HasThread(t.Id) {
-			return nil, fmt.Errorf("Thread %v was removed", t.Id)
+		if !new.HasThread(t.ID) {
+			return nil, fmt.Errorf("Thread %v was removed", t.ID)
 		}
 	}
 	var ss []*Thread
 	for _, sel := range new.Threads {
-		if !old.HasThread(sel.Id) || (resumed != nil && resumed.Id == sel.Id) {
+		if !old.HasThread(sel.ID) || (resumed != nil && resumed.ID == sel.ID) {
 			ss = append(ss, sel)
 		}
 	}
@@ -232,7 +232,7 @@ func (r *SelectRuntime) getWorkflow(id string) *Workflow {
 func (r *SelectRuntime) getType(id string) *Type {
 	if id == "async.None" || id == "async.JSON" { // builtin types
 		return &Type{
-			Id:      id,
+			ID:      id,
 			Version: 1,
 		}
 	}
@@ -286,12 +286,12 @@ func validateString(s, name string) error {
 
 func validateAndFillThread(p *Workflow, t *Thread) error {
 	if t.Workflow == "" {
-		t.Workflow = p.Id
+		t.Workflow = p.ID
 	}
 	if t.Service == "" {
 		t.Service = p.Service
 	}
-	if t.Workflow != p.Id {
+	if t.Workflow != p.ID {
 		return fmt.Errorf("thread workflow id mismatch")
 	}
 	if t.Service != p.Service {
@@ -308,11 +308,11 @@ func validateAndFillThread(p *Workflow, t *Thread) error {
 		if t.Select != nil {
 			return fmt.Errorf("you can only do only 'Call' or 'Select'at the same time")
 		}
-		err := validateString(t.Call.Id, "thread 'Call' id")
+		err := validateString(t.Call.ID, "thread 'Call' id")
 		if err != nil {
 			return err
 		}
-		err = validateString(t.Call.Name, "thread 'Call' name")
+		err = validateString(t.Call.API, "thread 'Call' API")
 		if err != nil {
 			return err
 		}
@@ -327,7 +327,7 @@ func validateAndFillThread(p *Workflow, t *Thread) error {
 		if len(t.Select.Cases) == 0 {
 			return fmt.Errorf("select should have at least 1 case")
 		}
-		if t.Select.Result == Select_Closed {
+		if t.Select.Closed {
 			return fmt.Errorf("predefined 'Closed' select result is not allowed")
 		}
 		if len(t.Select.RecvData) != 0 {
@@ -335,8 +335,8 @@ func validateAndFillThread(p *Workflow, t *Thread) error {
 		}
 		for i, c := range t.Select.Cases {
 			msg := fmt.Sprintf("in case %v", i)
-			if c.ToStatus != "" {
-				err := validateString(c.ToStatus, "select to status "+msg)
+			if c.Callback != "" {
+				err := validateString(c.Callback, "select to status "+msg)
 				if err != nil {
 					return err
 				}
@@ -387,7 +387,7 @@ func validateAndFillThread(p *Workflow, t *Thread) error {
 				}
 			case Case_Default:
 				if c.Time != 0 || len(c.Data) != 0 || c.DataType != "" || c.Chan != "" {
-					return fmt.Errorf("'Default' case can only have 'ToStatus' set")
+					return fmt.Errorf("'Default' case can only have 'Callback' set")
 				}
 			}
 		}
@@ -397,7 +397,7 @@ func validateAndFillThread(p *Workflow, t *Thread) error {
 
 func (s *Workflow) HasThread(id string) bool {
 	for _, sel := range s.Threads {
-		if sel.Id == id {
+		if sel.ID == id {
 			return true
 		}
 	}
@@ -406,7 +406,7 @@ func (s *Workflow) HasThread(id string) bool {
 
 func (s *Workflow) SetThread(new *Thread) (created bool) {
 	for i, sel := range s.Threads {
-		if sel.Id == new.Id {
+		if sel.ID == new.ID {
 			s.Threads[i] = new
 			return false
 		}
@@ -417,14 +417,14 @@ func (s *Workflow) SetThread(new *Thread) (created bool) {
 
 func (w *Call) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		Id         string
-		Name       string
+		ID         string
+		API       string
 		Input      json.RawMessage
 		InputType  string
 		OutputType string
 	}{
-		Id:         w.Id,
-		Name:       w.Name,
+		ID:         w.ID,
+		API:       w.API,
 		Input:      w.Input,
 		InputType:  w.InputType,
 		OutputType: w.OutputType,
@@ -433,14 +433,14 @@ func (w *Call) MarshalJSON() ([]byte, error) {
 
 func (w *Case) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		ToStatus string
+		Callback string
 		Op       Case_Op
 		Chan     string
 		Time     uint64
 		Data     json.RawMessage
 		DataType string
 	}{
-		ToStatus: w.ToStatus,
+		Callback: w.Callback,
 		Op:       w.Op,
 		Chan:     w.Chan,
 		Time:     w.Time,
@@ -454,19 +454,19 @@ func (w *Select) MarshalJSON() ([]byte, error) {
 		Cases         []*Case
 		UnblockedCase uint64
 		RecvData      json.RawMessage
-		Result        Select_Result
+		Closed        bool
 	}{
 		Cases:         w.Cases,
 		UnblockedCase: w.UnblockedCase,
 		RecvData:      w.RecvData,
-		Result:        w.Result,
+		Closed:        w.Closed,
 	})
 }
 
 func (w *Workflow) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		Id        string
-		Name      string
+		ID        string
+		API       string
 		Service   string
 		Status    Workflow_Status
 		Threads   []*Thread
@@ -476,8 +476,8 @@ func (w *Workflow) MarshalJSON() ([]byte, error) {
 		Version   uint64
 		UpdatedAt uint64
 	}{
-		Id:        w.Id,
-		Name:      w.Name,
+		ID:        w.ID,
+		API:       w.API,
 		Service:   w.Service,
 		Status:    w.Status,
 		Threads:   w.Threads,

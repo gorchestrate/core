@@ -59,21 +59,18 @@ const (
 	Thread_Invalid   Thread_Status = 0
 	Thread_Blocked   Thread_Status = 1
 	Thread_Unblocked Thread_Status = 2
-	Thread_Aborted   Thread_Status = 3
 )
 
 var Thread_Status_name = map[int32]string{
 	0: "Invalid",
 	1: "Blocked",
 	2: "Unblocked",
-	3: "Aborted",
 }
 
 var Thread_Status_value = map[string]int32{
 	"Invalid":   0,
 	"Blocked":   1,
 	"Unblocked": 2,
-	"Aborted":   3,
 }
 
 func (x Thread_Status) String() string {
@@ -82,34 +79,6 @@ func (x Thread_Status) String() string {
 
 func (Thread_Status) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_d938547f84707355, []int{2, 0}
-}
-
-type Select_Result int32
-
-const (
-	Select_Invalid Select_Result = 0
-	Select_OK      Select_Result = 1
-	Select_Closed  Select_Result = 2
-)
-
-var Select_Result_name = map[int32]string{
-	0: "Invalid",
-	1: "OK",
-	2: "Closed",
-}
-
-var Select_Result_value = map[string]int32{
-	"Invalid": 0,
-	"OK":      1,
-	"Closed":  2,
-}
-
-func (x Select_Result) String() string {
-	return proto.EnumName(Select_Result_name, int32(x))
-}
-
-func (Select_Result) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{6, 0}
 }
 
 type Case_Op int32
@@ -143,16 +112,15 @@ func (x Case_Op) String() string {
 }
 
 func (Case_Op) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{7, 0}
+	return fileDescriptor_d938547f84707355, []int{6, 0}
 }
 
 type WorkflowAPI struct {
 	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Description          string   `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	Service              string   `protobuf:"bytes,3,opt,name=service,proto3" json:"service,omitempty"`
-	Input                string   `protobuf:"bytes,4,opt,name=input,proto3" json:"input,omitempty"`
-	Output               string   `protobuf:"bytes,5,opt,name=output,proto3" json:"output,omitempty"`
-	State                string   `protobuf:"bytes,6,opt,name=state,proto3" json:"state,omitempty"`
+	Service              string   `protobuf:"bytes,2,opt,name=service,proto3" json:"service,omitempty"`
+	Input                string   `protobuf:"bytes,3,opt,name=input,proto3" json:"input,omitempty"`
+	Output               string   `protobuf:"bytes,4,opt,name=output,proto3" json:"output,omitempty"`
+	State                string   `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -190,13 +158,6 @@ func (m *WorkflowAPI) GetName() string {
 	return ""
 }
 
-func (m *WorkflowAPI) GetDescription() string {
-	if m != nil {
-		return m.Description
-	}
-	return ""
-}
-
 func (m *WorkflowAPI) GetService() string {
 	if m != nil {
 		return m.Service
@@ -226,8 +187,8 @@ func (m *WorkflowAPI) GetState() string {
 }
 
 type Workflow struct {
-	Id                   string          `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name                 string          `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	ID                   string          `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	API                  string          `protobuf:"bytes,2,opt,name=API,proto3" json:"API,omitempty"`
 	Service              string          `protobuf:"bytes,3,opt,name=service,proto3" json:"service,omitempty"`
 	Status               Workflow_Status `protobuf:"varint,4,opt,name=status,proto3,enum=core.Workflow_Status" json:"status,omitempty"`
 	Threads              []*Thread       `protobuf:"bytes,5,rep,name=threads,proto3" json:"threads,omitempty"`
@@ -266,16 +227,16 @@ func (m *Workflow) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Workflow proto.InternalMessageInfo
 
-func (m *Workflow) GetId() string {
+func (m *Workflow) GetID() string {
 	if m != nil {
-		return m.Id
+		return m.ID
 	}
 	return ""
 }
 
-func (m *Workflow) GetName() string {
+func (m *Workflow) GetAPI() string {
 	if m != nil {
-		return m.Name
+		return m.API
 	}
 	return ""
 }
@@ -337,19 +298,18 @@ func (m *Workflow) GetUpdatedAt() uint64 {
 }
 
 type Thread struct {
-	Id          string        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Workflow    string        `protobuf:"bytes,2,opt,name=workflow,proto3" json:"workflow,omitempty"`
-	Service     string        `protobuf:"bytes,4,opt,name=service,proto3" json:"service,omitempty"`
-	Status      Thread_Status `protobuf:"varint,6,opt,name=status,proto3,enum=core.Thread_Status" json:"status,omitempty"`
-	Select      *Select       `protobuf:"bytes,5,opt,name=select,proto3" json:"select,omitempty"`
-	Call        *Call         `protobuf:"bytes,12,opt,name=call,proto3" json:"call,omitempty"`
-	BlockedAt   uint64        `protobuf:"varint,8,opt,name=blockedAt,proto3" json:"blockedAt,omitempty"`
-	UnblockedAt uint64        `protobuf:"varint,9,opt,name=unblockedAt,proto3" json:"unblockedAt,omitempty"`
-	// filled after unblocked
-	ToStatus             string   `protobuf:"bytes,13,opt,name=toStatus,proto3" json:"toStatus,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	ID                   string        `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	Workflow             string        `protobuf:"bytes,2,opt,name=workflow,proto3" json:"workflow,omitempty"`
+	Service              string        `protobuf:"bytes,4,opt,name=service,proto3" json:"service,omitempty"`
+	Status               Thread_Status `protobuf:"varint,6,opt,name=status,proto3,enum=core.Thread_Status" json:"status,omitempty"`
+	Select               *Select       `protobuf:"bytes,5,opt,name=select,proto3" json:"select,omitempty"`
+	Call                 *Call         `protobuf:"bytes,12,opt,name=call,proto3" json:"call,omitempty"`
+	BlockedAt            uint64        `protobuf:"varint,8,opt,name=blockedAt,proto3" json:"blockedAt,omitempty"`
+	UnblockedAt          uint64        `protobuf:"varint,9,opt,name=unblockedAt,proto3" json:"unblockedAt,omitempty"`
+	Callback             string        `protobuf:"bytes,13,opt,name=callback,proto3" json:"callback,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
 func (m *Thread) Reset()         { *m = Thread{} }
@@ -377,9 +337,9 @@ func (m *Thread) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Thread proto.InternalMessageInfo
 
-func (m *Thread) GetId() string {
+func (m *Thread) GetID() string {
 	if m != nil {
-		return m.Id
+		return m.ID
 	}
 	return ""
 }
@@ -433,15 +393,15 @@ func (m *Thread) GetUnblockedAt() uint64 {
 	return 0
 }
 
-func (m *Thread) GetToStatus() string {
+func (m *Thread) GetCallback() string {
 	if m != nil {
-		return m.ToStatus
+		return m.Callback
 	}
 	return ""
 }
 
 type Type struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	Description          string   `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	JsonSchema           []byte   `protobuf:"bytes,3,opt,name=jsonSchema,proto3" json:"jsonSchema,omitempty"`
 	Version              uint64   `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
@@ -475,9 +435,9 @@ func (m *Type) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Type proto.InternalMessageInfo
 
-func (m *Type) GetId() string {
+func (m *Type) GetID() string {
 	if m != nil {
-		return m.Id
+		return m.ID
 	}
 	return ""
 }
@@ -503,50 +463,9 @@ func (m *Type) GetVersion() uint64 {
 	return 0
 }
 
-// Create new workflow using template
-type NewWorkflowReq struct {
-	Call                 *Call    `protobuf:"bytes,1,opt,name=call,proto3" json:"call,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *NewWorkflowReq) Reset()         { *m = NewWorkflowReq{} }
-func (m *NewWorkflowReq) String() string { return proto.CompactTextString(m) }
-func (*NewWorkflowReq) ProtoMessage()    {}
-func (*NewWorkflowReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{4}
-}
-
-func (m *NewWorkflowReq) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_NewWorkflowReq.Unmarshal(m, b)
-}
-func (m *NewWorkflowReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_NewWorkflowReq.Marshal(b, m, deterministic)
-}
-func (m *NewWorkflowReq) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NewWorkflowReq.Merge(m, src)
-}
-func (m *NewWorkflowReq) XXX_Size() int {
-	return xxx_messageInfo_NewWorkflowReq.Size(m)
-}
-func (m *NewWorkflowReq) XXX_DiscardUnknown() {
-	xxx_messageInfo_NewWorkflowReq.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_NewWorkflowReq proto.InternalMessageInfo
-
-func (m *NewWorkflowReq) GetCall() *Call {
-	if m != nil {
-		return m.Call
-	}
-	return nil
-}
-
-// Update existing workflow
 type UpdateWorkflowReq struct {
 	Workflow             *Workflow `protobuf:"bytes,1,opt,name=workflow,proto3" json:"workflow,omitempty"`
-	LockId               uint64    `protobuf:"varint,2,opt,name=lockId,proto3" json:"lockId,omitempty"`
+	LockID               uint64    `protobuf:"varint,2,opt,name=lockID,proto3" json:"lockID,omitempty"`
 	UnblockedAt          uint64    `protobuf:"varint,3,opt,name=unblockedAt,proto3" json:"unblockedAt,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
 	XXX_unrecognized     []byte    `json:"-"`
@@ -557,7 +476,7 @@ func (m *UpdateWorkflowReq) Reset()         { *m = UpdateWorkflowReq{} }
 func (m *UpdateWorkflowReq) String() string { return proto.CompactTextString(m) }
 func (*UpdateWorkflowReq) ProtoMessage()    {}
 func (*UpdateWorkflowReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{5}
+	return fileDescriptor_d938547f84707355, []int{4}
 }
 
 func (m *UpdateWorkflowReq) XXX_Unmarshal(b []byte) error {
@@ -585,9 +504,9 @@ func (m *UpdateWorkflowReq) GetWorkflow() *Workflow {
 	return nil
 }
 
-func (m *UpdateWorkflowReq) GetLockId() uint64 {
+func (m *UpdateWorkflowReq) GetLockID() uint64 {
 	if m != nil {
-		return m.LockId
+		return m.LockID
 	}
 	return 0
 }
@@ -599,22 +518,22 @@ func (m *UpdateWorkflowReq) GetUnblockedAt() uint64 {
 	return 0
 }
 
+// Select is similar to 'select' in Go - it will block thread until one of the case conditions will be met
 type Select struct {
-	Cases []*Case `protobuf:"bytes,1,rep,name=cases,proto3" json:"cases,omitempty"`
-	// filled after unblocked
-	UnblockedCase        uint64        `protobuf:"varint,2,opt,name=unblockedCase,proto3" json:"unblockedCase,omitempty"`
-	RecvData             []byte        `protobuf:"bytes,3,opt,name=recvData,proto3" json:"recvData,omitempty"`
-	Result               Select_Result `protobuf:"varint,4,opt,name=result,proto3,enum=core.Select_Result" json:"result,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	Cases                []*Case  `protobuf:"bytes,1,rep,name=cases,proto3" json:"cases,omitempty"`
+	UnblockedCase        uint64   `protobuf:"varint,2,opt,name=unblockedCase,proto3" json:"unblockedCase,omitempty"`
+	RecvData             []byte   `protobuf:"bytes,3,opt,name=recvData,proto3" json:"recvData,omitempty"`
+	Closed               bool     `protobuf:"varint,4,opt,name=closed,proto3" json:"closed,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *Select) Reset()         { *m = Select{} }
 func (m *Select) String() string { return proto.CompactTextString(m) }
 func (*Select) ProtoMessage()    {}
 func (*Select) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{6}
+	return fileDescriptor_d938547f84707355, []int{5}
 }
 
 func (m *Select) XXX_Unmarshal(b []byte) error {
@@ -656,15 +575,15 @@ func (m *Select) GetRecvData() []byte {
 	return nil
 }
 
-func (m *Select) GetResult() Select_Result {
+func (m *Select) GetClosed() bool {
 	if m != nil {
-		return m.Result
+		return m.Closed
 	}
-	return Select_Invalid
+	return false
 }
 
 type Case struct {
-	ToStatus             string   `protobuf:"bytes,1,opt,name=toStatus,proto3" json:"toStatus,omitempty"`
+	Callback             string   `protobuf:"bytes,1,opt,name=callback,proto3" json:"callback,omitempty"`
 	Op                   Case_Op  `protobuf:"varint,2,opt,name=op,proto3,enum=core.Case_Op" json:"op,omitempty"`
 	Chan                 string   `protobuf:"bytes,3,opt,name=chan,proto3" json:"chan,omitempty"`
 	Time                 uint64   `protobuf:"varint,4,opt,name=time,proto3" json:"time,omitempty"`
@@ -679,7 +598,7 @@ func (m *Case) Reset()         { *m = Case{} }
 func (m *Case) String() string { return proto.CompactTextString(m) }
 func (*Case) ProtoMessage()    {}
 func (*Case) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{7}
+	return fileDescriptor_d938547f84707355, []int{6}
 }
 
 func (m *Case) XXX_Unmarshal(b []byte) error {
@@ -700,9 +619,9 @@ func (m *Case) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Case proto.InternalMessageInfo
 
-func (m *Case) GetToStatus() string {
+func (m *Case) GetCallback() string {
 	if m != nil {
-		return m.ToStatus
+		return m.Callback
 	}
 	return ""
 }
@@ -743,12 +662,11 @@ func (m *Case) GetDataType() string {
 }
 
 type Call struct {
-	Id         string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name       string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Input      []byte `protobuf:"bytes,3,opt,name=input,proto3" json:"input,omitempty"`
-	InputType  string `protobuf:"bytes,4,opt,name=inputType,proto3" json:"inputType,omitempty"`
-	OutputType string `protobuf:"bytes,5,opt,name=outputType,proto3" json:"outputType,omitempty"`
-	// filled after unblocked
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	API                  string   `protobuf:"bytes,2,opt,name=API,proto3" json:"API,omitempty"`
+	Input                []byte   `protobuf:"bytes,3,opt,name=input,proto3" json:"input,omitempty"`
+	InputType            string   `protobuf:"bytes,4,opt,name=inputType,proto3" json:"inputType,omitempty"`
+	OutputType           string   `protobuf:"bytes,5,opt,name=outputType,proto3" json:"outputType,omitempty"`
 	Output               []byte   `protobuf:"bytes,6,opt,name=output,proto3" json:"output,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -759,7 +677,7 @@ func (m *Call) Reset()         { *m = Call{} }
 func (m *Call) String() string { return proto.CompactTextString(m) }
 func (*Call) ProtoMessage()    {}
 func (*Call) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{8}
+	return fileDescriptor_d938547f84707355, []int{7}
 }
 
 func (m *Call) XXX_Unmarshal(b []byte) error {
@@ -780,16 +698,16 @@ func (m *Call) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Call proto.InternalMessageInfo
 
-func (m *Call) GetId() string {
+func (m *Call) GetID() string {
 	if m != nil {
-		return m.Id
+		return m.ID
 	}
 	return ""
 }
 
-func (m *Call) GetName() string {
+func (m *Call) GetAPI() string {
 	if m != nil {
-		return m.Name
+		return m.API
 	}
 	return ""
 }
@@ -823,11 +741,11 @@ func (m *Call) GetOutput() []byte {
 }
 
 type Channel struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	DataType             string   `protobuf:"bytes,2,opt,name=dataType,proto3" json:"dataType,omitempty"`
 	Closed               bool     `protobuf:"varint,3,opt,name=closed,proto3" json:"closed,omitempty"`
-	BufSize              uint64   `protobuf:"varint,4,opt,name=bufSize,proto3" json:"bufSize,omitempty"`
 	BufMaxSize           uint64   `protobuf:"varint,5,opt,name=bufMaxSize,proto3" json:"bufMaxSize,omitempty"`
+	BufSize              uint64   `protobuf:"varint,4,opt,name=bufSize,proto3" json:"bufSize,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -837,7 +755,7 @@ func (m *Channel) Reset()         { *m = Channel{} }
 func (m *Channel) String() string { return proto.CompactTextString(m) }
 func (*Channel) ProtoMessage()    {}
 func (*Channel) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{9}
+	return fileDescriptor_d938547f84707355, []int{8}
 }
 
 func (m *Channel) XXX_Unmarshal(b []byte) error {
@@ -858,9 +776,9 @@ func (m *Channel) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Channel proto.InternalMessageInfo
 
-func (m *Channel) GetId() string {
+func (m *Channel) GetID() string {
 	if m != nil {
-		return m.Id
+		return m.ID
 	}
 	return ""
 }
@@ -879,13 +797,6 @@ func (m *Channel) GetClosed() bool {
 	return false
 }
 
-func (m *Channel) GetBufSize() uint64 {
-	if m != nil {
-		return m.BufSize
-	}
-	return 0
-}
-
 func (m *Channel) GetBufMaxSize() uint64 {
 	if m != nil {
 		return m.BufMaxSize
@@ -893,6 +804,14 @@ func (m *Channel) GetBufMaxSize() uint64 {
 	return 0
 }
 
+func (m *Channel) GetBufSize() uint64 {
+	if m != nil {
+		return m.BufSize
+	}
+	return 0
+}
+
+// For internal use
 type ChanSelect struct {
 	BlockedAt            uint64   `protobuf:"varint,1,opt,name=blockedAt,proto3" json:"blockedAt,omitempty"`
 	Case                 uint64   `protobuf:"varint,2,opt,name=case,proto3" json:"case,omitempty"`
@@ -905,7 +824,7 @@ func (m *ChanSelect) Reset()         { *m = ChanSelect{} }
 func (m *ChanSelect) String() string { return proto.CompactTextString(m) }
 func (*ChanSelect) ProtoMessage()    {}
 func (*ChanSelect) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{10}
+	return fileDescriptor_d938547f84707355, []int{9}
 }
 
 func (m *ChanSelect) XXX_Unmarshal(b []byte) error {
@@ -940,9 +859,10 @@ func (m *ChanSelect) GetCase() uint64 {
 	return 0
 }
 
+// For internal use
 type WaitCallIndex struct {
 	BlockedAt            uint64   `protobuf:"varint,1,opt,name=blockedAt,proto3" json:"blockedAt,omitempty"`
-	WorkflowsId          string   `protobuf:"bytes,2,opt,name=workflowsId,proto3" json:"workflowsId,omitempty"`
+	WorkflowsID          string   `protobuf:"bytes,2,opt,name=workflowsID,proto3" json:"workflowsID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -952,7 +872,7 @@ func (m *WaitCallIndex) Reset()         { *m = WaitCallIndex{} }
 func (m *WaitCallIndex) String() string { return proto.CompactTextString(m) }
 func (*WaitCallIndex) ProtoMessage()    {}
 func (*WaitCallIndex) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{11}
+	return fileDescriptor_d938547f84707355, []int{10}
 }
 
 func (m *WaitCallIndex) XXX_Unmarshal(b []byte) error {
@@ -980,15 +900,16 @@ func (m *WaitCallIndex) GetBlockedAt() uint64 {
 	return 0
 }
 
-func (m *WaitCallIndex) GetWorkflowsId() string {
+func (m *WaitCallIndex) GetWorkflowsID() string {
 	if m != nil {
-		return m.WorkflowsId
+		return m.WorkflowsID
 	}
 	return ""
 }
 
+// For internal use
 type BufData struct {
-	//string Workflow     = 1;
+	//string Workflow     = 1; // TODO: maintain source workflow path?
 	//string Select    = 2;
 	//string Group     = 3;
 	//string ToStatus  = 4;
@@ -1004,7 +925,7 @@ func (m *BufData) Reset()         { *m = BufData{} }
 func (m *BufData) String() string { return proto.CompactTextString(m) }
 func (*BufData) ProtoMessage()    {}
 func (*BufData) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{12}
+	return fileDescriptor_d938547f84707355, []int{11}
 }
 
 func (m *BufData) XXX_Unmarshal(b []byte) error {
@@ -1056,7 +977,7 @@ func (m *Empty) Reset()         { *m = Empty{} }
 func (m *Empty) String() string { return proto.CompactTextString(m) }
 func (*Empty) ProtoMessage()    {}
 func (*Empty) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{13}
+	return fileDescriptor_d938547f84707355, []int{12}
 }
 
 func (m *Empty) XXX_Unmarshal(b []byte) error {
@@ -1090,7 +1011,7 @@ func (m *RegisterWorkflowHandlerReq) Reset()         { *m = RegisterWorkflowHand
 func (m *RegisterWorkflowHandlerReq) String() string { return proto.CompactTextString(m) }
 func (*RegisterWorkflowHandlerReq) ProtoMessage()    {}
 func (*RegisterWorkflowHandlerReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{14}
+	return fileDescriptor_d938547f84707355, []int{13}
 }
 
 func (m *RegisterWorkflowHandlerReq) XXX_Unmarshal(b []byte) error {
@@ -1135,7 +1056,7 @@ func (m *RegisterWorkflowHandlerReq) GetPollIntervalMs() int64 {
 type LockedWorkflow struct {
 	Workflow             *Workflow `protobuf:"bytes,1,opt,name=workflow,proto3" json:"workflow,omitempty"`
 	Thread               *Thread   `protobuf:"bytes,2,opt,name=thread,proto3" json:"thread,omitempty"`
-	LockId               uint64    `protobuf:"varint,3,opt,name=lockId,proto3" json:"lockId,omitempty"`
+	LockID               uint64    `protobuf:"varint,3,opt,name=lockID,proto3" json:"lockID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
 	XXX_unrecognized     []byte    `json:"-"`
 	XXX_sizecache        int32     `json:"-"`
@@ -1145,7 +1066,7 @@ func (m *LockedWorkflow) Reset()         { *m = LockedWorkflow{} }
 func (m *LockedWorkflow) String() string { return proto.CompactTextString(m) }
 func (*LockedWorkflow) ProtoMessage()    {}
 func (*LockedWorkflow) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{15}
+	return fileDescriptor_d938547f84707355, []int{14}
 }
 
 func (m *LockedWorkflow) XXX_Unmarshal(b []byte) error {
@@ -1180,54 +1101,15 @@ func (m *LockedWorkflow) GetThread() *Thread {
 	return nil
 }
 
-func (m *LockedWorkflow) GetLockId() uint64 {
+func (m *LockedWorkflow) GetLockID() uint64 {
 	if m != nil {
-		return m.LockId
+		return m.LockID
 	}
 	return 0
 }
 
-type MakeChanReq struct {
-	Chan                 *Channel `protobuf:"bytes,1,opt,name=chan,proto3" json:"chan,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *MakeChanReq) Reset()         { *m = MakeChanReq{} }
-func (m *MakeChanReq) String() string { return proto.CompactTextString(m) }
-func (*MakeChanReq) ProtoMessage()    {}
-func (*MakeChanReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{16}
-}
-
-func (m *MakeChanReq) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_MakeChanReq.Unmarshal(m, b)
-}
-func (m *MakeChanReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_MakeChanReq.Marshal(b, m, deterministic)
-}
-func (m *MakeChanReq) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MakeChanReq.Merge(m, src)
-}
-func (m *MakeChanReq) XXX_Size() int {
-	return xxx_messageInfo_MakeChanReq.Size(m)
-}
-func (m *MakeChanReq) XXX_DiscardUnknown() {
-	xxx_messageInfo_MakeChanReq.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MakeChanReq proto.InternalMessageInfo
-
-func (m *MakeChanReq) GetChan() *Channel {
-	if m != nil {
-		return m.Chan
-	}
-	return nil
-}
-
 type CloseChanReq struct {
-	Ids                  []string `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
+	IDs                  []string `protobuf:"bytes,1,rep,name=IDs,proto3" json:"IDs,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1237,7 +1119,7 @@ func (m *CloseChanReq) Reset()         { *m = CloseChanReq{} }
 func (m *CloseChanReq) String() string { return proto.CompactTextString(m) }
 func (*CloseChanReq) ProtoMessage()    {}
 func (*CloseChanReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{17}
+	return fileDescriptor_d938547f84707355, []int{15}
 }
 
 func (m *CloseChanReq) XXX_Unmarshal(b []byte) error {
@@ -1258,15 +1140,15 @@ func (m *CloseChanReq) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CloseChanReq proto.InternalMessageInfo
 
-func (m *CloseChanReq) GetIds() []string {
+func (m *CloseChanReq) GetIDs() []string {
 	if m != nil {
-		return m.Ids
+		return m.IDs
 	}
 	return nil
 }
 
 type DeleteChanReq struct {
-	Ids                  []string `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
+	IDs                  []string `protobuf:"bytes,1,rep,name=IDs,proto3" json:"IDs,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1276,7 +1158,7 @@ func (m *DeleteChanReq) Reset()         { *m = DeleteChanReq{} }
 func (m *DeleteChanReq) String() string { return proto.CompactTextString(m) }
 func (*DeleteChanReq) ProtoMessage()    {}
 func (*DeleteChanReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{18}
+	return fileDescriptor_d938547f84707355, []int{16}
 }
 
 func (m *DeleteChanReq) XXX_Unmarshal(b []byte) error {
@@ -1297,15 +1179,53 @@ func (m *DeleteChanReq) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DeleteChanReq proto.InternalMessageInfo
 
-func (m *DeleteChanReq) GetIds() []string {
+func (m *DeleteChanReq) GetIDs() []string {
 	if m != nil {
-		return m.Ids
+		return m.IDs
 	}
 	return nil
 }
 
+type GetChanReq struct {
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetChanReq) Reset()         { *m = GetChanReq{} }
+func (m *GetChanReq) String() string { return proto.CompactTextString(m) }
+func (*GetChanReq) ProtoMessage()    {}
+func (*GetChanReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d938547f84707355, []int{17}
+}
+
+func (m *GetChanReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetChanReq.Unmarshal(m, b)
+}
+func (m *GetChanReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetChanReq.Marshal(b, m, deterministic)
+}
+func (m *GetChanReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetChanReq.Merge(m, src)
+}
+func (m *GetChanReq) XXX_Size() int {
+	return xxx_messageInfo_GetChanReq.Size(m)
+}
+func (m *GetChanReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetChanReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetChanReq proto.InternalMessageInfo
+
+func (m *GetChanReq) GetID() string {
+	if m != nil {
+		return m.ID
+	}
+	return ""
+}
+
 type ListChansReq struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	From                 string   `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
 	Limit                uint64   `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -1317,7 +1237,7 @@ func (m *ListChansReq) Reset()         { *m = ListChansReq{} }
 func (m *ListChansReq) String() string { return proto.CompactTextString(m) }
 func (*ListChansReq) ProtoMessage()    {}
 func (*ListChansReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{19}
+	return fileDescriptor_d938547f84707355, []int{18}
 }
 
 func (m *ListChansReq) XXX_Unmarshal(b []byte) error {
@@ -1337,13 +1257,6 @@ func (m *ListChansReq) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_ListChansReq proto.InternalMessageInfo
-
-func (m *ListChansReq) GetId() string {
-	if m != nil {
-		return m.Id
-	}
-	return ""
-}
 
 func (m *ListChansReq) GetFrom() string {
 	if m != nil {
@@ -1370,7 +1283,7 @@ func (m *ListChansResp) Reset()         { *m = ListChansResp{} }
 func (m *ListChansResp) String() string { return proto.CompactTextString(m) }
 func (*ListChansResp) ProtoMessage()    {}
 func (*ListChansResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{20}
+	return fileDescriptor_d938547f84707355, []int{19}
 }
 
 func (m *ListChansResp) XXX_Unmarshal(b []byte) error {
@@ -1398,8 +1311,46 @@ func (m *ListChansResp) GetChans() []*Channel {
 	return nil
 }
 
+type GetTypeReq struct {
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetTypeReq) Reset()         { *m = GetTypeReq{} }
+func (m *GetTypeReq) String() string { return proto.CompactTextString(m) }
+func (*GetTypeReq) ProtoMessage()    {}
+func (*GetTypeReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d938547f84707355, []int{20}
+}
+
+func (m *GetTypeReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetTypeReq.Unmarshal(m, b)
+}
+func (m *GetTypeReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetTypeReq.Marshal(b, m, deterministic)
+}
+func (m *GetTypeReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTypeReq.Merge(m, src)
+}
+func (m *GetTypeReq) XXX_Size() int {
+	return xxx_messageInfo_GetTypeReq.Size(m)
+}
+func (m *GetTypeReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetTypeReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetTypeReq proto.InternalMessageInfo
+
+func (m *GetTypeReq) GetID() string {
+	if m != nil {
+		return m.ID
+	}
+	return ""
+}
+
 type ListTypesReq struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	From                 string   `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
 	Limit                uint64   `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -1431,13 +1382,6 @@ func (m *ListTypesReq) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_ListTypesReq proto.InternalMessageInfo
-
-func (m *ListTypesReq) GetId() string {
-	if m != nil {
-		return m.Id
-	}
-	return ""
-}
 
 func (m *ListTypesReq) GetFrom() string {
 	if m != nil {
@@ -1492,8 +1436,46 @@ func (m *ListTypesResp) GetTypes() []*Type {
 	return nil
 }
 
+type GetWorkflowAPIsReq struct {
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetWorkflowAPIsReq) Reset()         { *m = GetWorkflowAPIsReq{} }
+func (m *GetWorkflowAPIsReq) String() string { return proto.CompactTextString(m) }
+func (*GetWorkflowAPIsReq) ProtoMessage()    {}
+func (*GetWorkflowAPIsReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d938547f84707355, []int{23}
+}
+
+func (m *GetWorkflowAPIsReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetWorkflowAPIsReq.Unmarshal(m, b)
+}
+func (m *GetWorkflowAPIsReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetWorkflowAPIsReq.Marshal(b, m, deterministic)
+}
+func (m *GetWorkflowAPIsReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetWorkflowAPIsReq.Merge(m, src)
+}
+func (m *GetWorkflowAPIsReq) XXX_Size() int {
+	return xxx_messageInfo_GetWorkflowAPIsReq.Size(m)
+}
+func (m *GetWorkflowAPIsReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetWorkflowAPIsReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetWorkflowAPIsReq proto.InternalMessageInfo
+
+func (m *GetWorkflowAPIsReq) GetID() string {
+	if m != nil {
+		return m.ID
+	}
+	return ""
+}
+
 type ListWorkflowAPIsReq struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	From                 string   `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
 	Limit                uint64   `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -1505,7 +1487,7 @@ func (m *ListWorkflowAPIsReq) Reset()         { *m = ListWorkflowAPIsReq{} }
 func (m *ListWorkflowAPIsReq) String() string { return proto.CompactTextString(m) }
 func (*ListWorkflowAPIsReq) ProtoMessage()    {}
 func (*ListWorkflowAPIsReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{23}
+	return fileDescriptor_d938547f84707355, []int{24}
 }
 
 func (m *ListWorkflowAPIsReq) XXX_Unmarshal(b []byte) error {
@@ -1526,13 +1508,6 @@ func (m *ListWorkflowAPIsReq) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ListWorkflowAPIsReq proto.InternalMessageInfo
 
-func (m *ListWorkflowAPIsReq) GetId() string {
-	if m != nil {
-		return m.Id
-	}
-	return ""
-}
-
 func (m *ListWorkflowAPIsReq) GetFrom() string {
 	if m != nil {
 		return m.From
@@ -1548,7 +1523,7 @@ func (m *ListWorkflowAPIsReq) GetLimit() uint64 {
 }
 
 type ListWorkflowAPIsResp struct {
-	Apis                 []*WorkflowAPI `protobuf:"bytes,1,rep,name=apis,proto3" json:"apis,omitempty"`
+	APIs                 []*WorkflowAPI `protobuf:"bytes,1,rep,name=APIs,proto3" json:"APIs,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
 	XXX_unrecognized     []byte         `json:"-"`
 	XXX_sizecache        int32          `json:"-"`
@@ -1558,7 +1533,7 @@ func (m *ListWorkflowAPIsResp) Reset()         { *m = ListWorkflowAPIsResp{} }
 func (m *ListWorkflowAPIsResp) String() string { return proto.CompactTextString(m) }
 func (*ListWorkflowAPIsResp) ProtoMessage()    {}
 func (*ListWorkflowAPIsResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{24}
+	return fileDescriptor_d938547f84707355, []int{25}
 }
 
 func (m *ListWorkflowAPIsResp) XXX_Unmarshal(b []byte) error {
@@ -1579,15 +1554,15 @@ func (m *ListWorkflowAPIsResp) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ListWorkflowAPIsResp proto.InternalMessageInfo
 
-func (m *ListWorkflowAPIsResp) GetApis() []*WorkflowAPI {
+func (m *ListWorkflowAPIsResp) GetAPIs() []*WorkflowAPI {
 	if m != nil {
-		return m.Apis
+		return m.APIs
 	}
 	return nil
 }
 
 type GetWorkflowReq struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1597,7 +1572,7 @@ func (m *GetWorkflowReq) Reset()         { *m = GetWorkflowReq{} }
 func (m *GetWorkflowReq) String() string { return proto.CompactTextString(m) }
 func (*GetWorkflowReq) ProtoMessage()    {}
 func (*GetWorkflowReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{25}
+	return fileDescriptor_d938547f84707355, []int{26}
 }
 
 func (m *GetWorkflowReq) XXX_Unmarshal(b []byte) error {
@@ -1618,15 +1593,15 @@ func (m *GetWorkflowReq) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetWorkflowReq proto.InternalMessageInfo
 
-func (m *GetWorkflowReq) GetId() string {
+func (m *GetWorkflowReq) GetID() string {
 	if m != nil {
-		return m.Id
+		return m.ID
 	}
 	return ""
 }
 
 type LockWorkflowReq struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	Seconds              uint64   `protobuf:"varint,2,opt,name=seconds,proto3" json:"seconds,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -1637,7 +1612,7 @@ func (m *LockWorkflowReq) Reset()         { *m = LockWorkflowReq{} }
 func (m *LockWorkflowReq) String() string { return proto.CompactTextString(m) }
 func (*LockWorkflowReq) ProtoMessage()    {}
 func (*LockWorkflowReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{26}
+	return fileDescriptor_d938547f84707355, []int{27}
 }
 
 func (m *LockWorkflowReq) XXX_Unmarshal(b []byte) error {
@@ -1658,9 +1633,9 @@ func (m *LockWorkflowReq) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_LockWorkflowReq proto.InternalMessageInfo
 
-func (m *LockWorkflowReq) GetId() string {
+func (m *LockWorkflowReq) GetID() string {
 	if m != nil {
-		return m.Id
+		return m.ID
 	}
 	return ""
 }
@@ -1673,8 +1648,8 @@ func (m *LockWorkflowReq) GetSeconds() uint64 {
 }
 
 type ExtendLockReq struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Lockid               uint64   `protobuf:"varint,2,opt,name=lockid,proto3" json:"lockid,omitempty"`
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	LockID               uint64   `protobuf:"varint,2,opt,name=lockID,proto3" json:"lockID,omitempty"`
 	Seconds              uint64   `protobuf:"varint,3,opt,name=seconds,proto3" json:"seconds,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -1685,7 +1660,7 @@ func (m *ExtendLockReq) Reset()         { *m = ExtendLockReq{} }
 func (m *ExtendLockReq) String() string { return proto.CompactTextString(m) }
 func (*ExtendLockReq) ProtoMessage()    {}
 func (*ExtendLockReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{27}
+	return fileDescriptor_d938547f84707355, []int{28}
 }
 
 func (m *ExtendLockReq) XXX_Unmarshal(b []byte) error {
@@ -1706,16 +1681,16 @@ func (m *ExtendLockReq) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ExtendLockReq proto.InternalMessageInfo
 
-func (m *ExtendLockReq) GetId() string {
+func (m *ExtendLockReq) GetID() string {
 	if m != nil {
-		return m.Id
+		return m.ID
 	}
 	return ""
 }
 
-func (m *ExtendLockReq) GetLockid() uint64 {
+func (m *ExtendLockReq) GetLockID() uint64 {
 	if m != nil {
-		return m.Lockid
+		return m.LockID
 	}
 	return 0
 }
@@ -1739,7 +1714,7 @@ func (m *ListenWorkflowsUpdatesReq) Reset()         { *m = ListenWorkflowsUpdate
 func (m *ListenWorkflowsUpdatesReq) String() string { return proto.CompactTextString(m) }
 func (*ListenWorkflowsUpdatesReq) ProtoMessage()    {}
 func (*ListenWorkflowsUpdatesReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{28}
+	return fileDescriptor_d938547f84707355, []int{29}
 }
 
 func (m *ListenWorkflowsUpdatesReq) XXX_Unmarshal(b []byte) error {
@@ -1789,7 +1764,7 @@ func (m *FindWorkflowsReq) Reset()         { *m = FindWorkflowsReq{} }
 func (m *FindWorkflowsReq) String() string { return proto.CompactTextString(m) }
 func (*FindWorkflowsReq) ProtoMessage()    {}
 func (*FindWorkflowsReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{29}
+	return fileDescriptor_d938547f84707355, []int{30}
 }
 
 func (m *FindWorkflowsReq) XXX_Unmarshal(b []byte) error {
@@ -1856,7 +1831,7 @@ func (m *FindWorkflowsResp) Reset()         { *m = FindWorkflowsResp{} }
 func (m *FindWorkflowsResp) String() string { return proto.CompactTextString(m) }
 func (*FindWorkflowsResp) ProtoMessage()    {}
 func (*FindWorkflowsResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{30}
+	return fileDescriptor_d938547f84707355, []int{31}
 }
 
 func (m *FindWorkflowsResp) XXX_Unmarshal(b []byte) error {
@@ -1896,7 +1871,7 @@ func (m *WorkflowEvent) Reset()         { *m = WorkflowEvent{} }
 func (m *WorkflowEvent) String() string { return proto.CompactTextString(m) }
 func (*WorkflowEvent) ProtoMessage()    {}
 func (*WorkflowEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d938547f84707355, []int{31}
+	return fileDescriptor_d938547f84707355, []int{32}
 }
 
 func (m *WorkflowEvent) XXX_Unmarshal(b []byte) error {
@@ -1934,13 +1909,11 @@ func (m *WorkflowEvent) GetThread() *Thread {
 func init() {
 	proto.RegisterEnum("core.Workflow_Status", Workflow_Status_name, Workflow_Status_value)
 	proto.RegisterEnum("core.Thread_Status", Thread_Status_name, Thread_Status_value)
-	proto.RegisterEnum("core.Select_Result", Select_Result_name, Select_Result_value)
 	proto.RegisterEnum("core.Case_Op", Case_Op_name, Case_Op_value)
 	proto.RegisterType((*WorkflowAPI)(nil), "core.WorkflowAPI")
 	proto.RegisterType((*Workflow)(nil), "core.Workflow")
 	proto.RegisterType((*Thread)(nil), "core.Thread")
 	proto.RegisterType((*Type)(nil), "core.Type")
-	proto.RegisterType((*NewWorkflowReq)(nil), "core.NewWorkflowReq")
 	proto.RegisterType((*UpdateWorkflowReq)(nil), "core.UpdateWorkflowReq")
 	proto.RegisterType((*Select)(nil), "core.Select")
 	proto.RegisterType((*Case)(nil), "core.Case")
@@ -1952,13 +1925,15 @@ func init() {
 	proto.RegisterType((*Empty)(nil), "core.Empty")
 	proto.RegisterType((*RegisterWorkflowHandlerReq)(nil), "core.RegisterWorkflowHandlerReq")
 	proto.RegisterType((*LockedWorkflow)(nil), "core.LockedWorkflow")
-	proto.RegisterType((*MakeChanReq)(nil), "core.MakeChanReq")
 	proto.RegisterType((*CloseChanReq)(nil), "core.CloseChanReq")
 	proto.RegisterType((*DeleteChanReq)(nil), "core.DeleteChanReq")
+	proto.RegisterType((*GetChanReq)(nil), "core.GetChanReq")
 	proto.RegisterType((*ListChansReq)(nil), "core.ListChansReq")
 	proto.RegisterType((*ListChansResp)(nil), "core.ListChansResp")
+	proto.RegisterType((*GetTypeReq)(nil), "core.GetTypeReq")
 	proto.RegisterType((*ListTypesReq)(nil), "core.ListTypesReq")
 	proto.RegisterType((*ListTypesResp)(nil), "core.ListTypesResp")
+	proto.RegisterType((*GetWorkflowAPIsReq)(nil), "core.GetWorkflowAPIsReq")
 	proto.RegisterType((*ListWorkflowAPIsReq)(nil), "core.ListWorkflowAPIsReq")
 	proto.RegisterType((*ListWorkflowAPIsResp)(nil), "core.ListWorkflowAPIsResp")
 	proto.RegisterType((*GetWorkflowReq)(nil), "core.GetWorkflowReq")
@@ -1973,104 +1948,101 @@ func init() {
 func init() { proto.RegisterFile("types.proto", fileDescriptor_d938547f84707355) }
 
 var fileDescriptor_d938547f84707355 = []byte{
-	// 1543 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x58, 0xdd, 0x72, 0xd3, 0xc6,
-	0x17, 0xff, 0x4b, 0x96, 0x65, 0xfb, 0xf8, 0xe3, 0xef, 0x6c, 0x42, 0x30, 0x1e, 0x4a, 0xcd, 0x16,
-	0x18, 0xda, 0x52, 0x4f, 0x1a, 0x98, 0xde, 0x50, 0x98, 0x86, 0x84, 0x8f, 0x4c, 0xa1, 0x49, 0x15,
-	0x18, 0x66, 0x7a, 0xa7, 0x48, 0x1b, 0xa2, 0x22, 0x4b, 0xaa, 0x76, 0x1d, 0x08, 0x97, 0xbd, 0xe9,
-	0x1b, 0xf4, 0xbe, 0xef, 0xd2, 0x77, 0xe8, 0x4c, 0x67, 0xfa, 0x10, 0x7d, 0x83, 0xce, 0x7e, 0xc9,
-	0xbb, 0x8e, 0x0d, 0x65, 0xe8, 0x95, 0x77, 0xcf, 0xd9, 0x8f, 0xdf, 0xf9, 0xed, 0x39, 0xbf, 0xa3,
-	0x31, 0xb4, 0xd9, 0x69, 0x41, 0xe8, 0xb8, 0x28, 0x73, 0x96, 0x23, 0x2f, 0xca, 0x4b, 0x82, 0x7f,
-	0x73, 0xa0, 0xfd, 0x3c, 0x2f, 0x5f, 0x1e, 0xa5, 0xf9, 0xab, 0xad, 0xfd, 0x5d, 0x84, 0xc0, 0xcb,
-	0xc2, 0x09, 0x19, 0x38, 0x23, 0xe7, 0x7a, 0x2b, 0x10, 0x63, 0x34, 0x82, 0x76, 0x4c, 0x68, 0x54,
-	0x26, 0x05, 0x4b, 0xf2, 0x6c, 0xe0, 0x0a, 0x97, 0x69, 0x42, 0x03, 0x68, 0x50, 0x52, 0x9e, 0x24,
-	0x11, 0x19, 0xd4, 0x84, 0x57, 0x4f, 0xd1, 0x1a, 0xd4, 0x93, 0xac, 0x98, 0xb2, 0x81, 0x27, 0xec,
-	0x72, 0x82, 0xd6, 0xc1, 0xcf, 0xa7, 0x8c, 0x9b, 0xeb, 0xc2, 0xac, 0x66, 0x7c, 0x35, 0x65, 0x21,
-	0x23, 0x03, 0x5f, 0xae, 0x16, 0x13, 0xfc, 0xa7, 0x0b, 0x4d, 0x8d, 0x11, 0xf5, 0xc0, 0x4d, 0x62,
-	0x05, 0xcf, 0x4d, 0xe2, 0x0a, 0xb0, 0x6b, 0x00, 0x5e, 0x0e, 0xe7, 0x0b, 0xf0, 0xf9, 0x99, 0x53,
-	0x2a, 0xf0, 0xf4, 0x36, 0xcf, 0x8d, 0x39, 0x0b, 0x63, 0x7d, 0xfa, 0xf8, 0x40, 0x38, 0x03, 0xb5,
-	0x08, 0x5d, 0x83, 0x06, 0x3b, 0x2e, 0x49, 0x18, 0xd3, 0x41, 0x7d, 0x54, 0xbb, 0xde, 0xde, 0xec,
-	0xc8, 0xf5, 0x4f, 0x85, 0x31, 0xd0, 0x4e, 0x1b, 0x77, 0x47, 0xe1, 0x9e, 0xc5, 0xde, 0x90, 0xd6,
-	0xf9, 0xd8, 0x9b, 0xc2, 0xac, 0x63, 0x1f, 0x40, 0xe3, 0x84, 0x94, 0x94, 0x33, 0xdc, 0x1a, 0x39,
-	0xd7, 0xbd, 0x40, 0x4f, 0xd1, 0x45, 0x68, 0x4d, 0x8b, 0x38, 0x64, 0x24, 0xde, 0x62, 0x03, 0x10,
-	0xbe, 0x99, 0x01, 0xdf, 0x01, 0x5f, 0xa2, 0x46, 0x6d, 0x68, 0xec, 0x66, 0x27, 0x61, 0x9a, 0xc4,
-	0xfd, 0xff, 0xf1, 0xc9, 0x01, 0x0b, 0x4b, 0x46, 0xe2, 0xbe, 0xc3, 0x27, 0xc1, 0x34, 0xcb, 0x92,
-	0xec, 0x45, 0xdf, 0x45, 0x1d, 0x68, 0x3e, 0x48, 0xb2, 0x84, 0x1e, 0x93, 0xb8, 0x5f, 0xc3, 0x7f,
-	0xb9, 0xe0, 0xcb, 0x70, 0xce, 0x50, 0x3b, 0x84, 0xe6, 0x2b, 0x45, 0x8c, 0xa2, 0xb7, 0x9a, 0x9b,
-	0x14, 0x7b, 0x36, 0xc5, 0x9f, 0x57, 0x14, 0xfb, 0x82, 0xe2, 0x55, 0x93, 0xb2, 0x79, 0x82, 0xaf,
-	0x80, 0x4f, 0x49, 0x4a, 0x22, 0x99, 0x08, 0x15, 0xbf, 0x07, 0xc2, 0x16, 0x28, 0x1f, 0xba, 0x04,
-	0x5e, 0x14, 0xa6, 0xe9, 0xa0, 0x23, 0xd6, 0x80, 0x5c, 0xb3, 0x1d, 0xa6, 0x69, 0x20, 0xec, 0x9c,
-	0xa0, 0xc3, 0x34, 0x8f, 0x5e, 0x0a, 0x82, 0x9a, 0x92, 0xa0, 0xca, 0xc0, 0xd3, 0x77, 0x9a, 0xcd,
-	0xfc, 0x92, 0x5c, 0xd3, 0xc4, 0x03, 0x65, 0xb9, 0x44, 0x36, 0xe8, 0xca, 0x40, 0xf5, 0x1c, 0xdf,
-	0x5d, 0x4a, 0xef, 0x3d, 0xb9, 0xbf, 0xef, 0xa0, 0x2e, 0xb4, 0x9e, 0xe9, 0xe3, 0xfa, 0x2e, 0xf7,
-	0x6d, 0x1d, 0xe6, 0x82, 0xfa, 0x1a, 0x2e, 0xc1, 0x7b, 0x7a, 0x5a, 0x90, 0x33, 0xe4, 0xbe, 0xbb,
-	0xa8, 0x2e, 0x01, 0xfc, 0x48, 0xf3, 0xec, 0x20, 0x3a, 0x26, 0x93, 0x50, 0x24, 0x72, 0x27, 0x30,
-	0x2c, 0x66, 0xc2, 0x78, 0x56, 0xc2, 0xe0, 0x0d, 0xe8, 0x7d, 0x47, 0x5e, 0xe9, 0xa4, 0x0e, 0xc8,
-	0x4f, 0x15, 0x83, 0xce, 0x62, 0x06, 0xf1, 0x29, 0xac, 0x3c, 0x13, 0x19, 0x65, 0x6e, 0xfa, 0xcc,
-	0x78, 0x7f, 0xb9, 0xb1, 0x67, 0x97, 0x8b, 0x91, 0x0f, 0xeb, 0xe0, 0xf3, 0xf8, 0x77, 0x63, 0x11,
-	0x89, 0x17, 0xa8, 0xd9, 0x3c, 0xf9, 0xb5, 0x33, 0xe4, 0xe3, 0xdf, 0x1d, 0xf0, 0xe5, 0x7b, 0xa3,
-	0x11, 0xd4, 0xa3, 0x90, 0x12, 0x3a, 0x70, 0x44, 0xb1, 0x55, 0x30, 0x29, 0x09, 0xa4, 0x03, 0x5d,
-	0x81, 0x6e, 0xb5, 0x97, 0xdb, 0xd5, 0x6d, 0xb6, 0x91, 0xbf, 0x67, 0x49, 0xa2, 0x93, 0x9d, 0x90,
-	0x69, 0xde, 0xaa, 0x39, 0x4f, 0xcf, 0x92, 0xd0, 0x69, 0xca, 0x94, 0x02, 0xac, 0x9a, 0x19, 0x37,
-	0x0e, 0x84, 0x2b, 0x50, 0x4b, 0xf0, 0xa7, 0xe0, 0x4b, 0x8b, 0xfd, 0xf8, 0x3e, 0xb8, 0x7b, 0xdf,
-	0xf6, 0x1d, 0x04, 0xe0, 0x6f, 0xa7, 0x39, 0xe5, 0x8f, 0x8e, 0xff, 0x70, 0xc0, 0xd3, 0x97, 0x57,
-	0xc9, 0xe4, 0xd8, 0xc9, 0x84, 0x3e, 0x02, 0x37, 0x2f, 0x04, 0xe6, 0xde, 0x66, 0x77, 0x16, 0xdd,
-	0x78, 0xaf, 0x08, 0xdc, 0xbc, 0xe0, 0x5a, 0x16, 0x1d, 0x87, 0x99, 0x12, 0x2d, 0x31, 0xe6, 0x36,
-	0x96, 0x4c, 0x88, 0x7a, 0x62, 0x31, 0xe6, 0xb6, 0x98, 0xc7, 0x56, 0x17, 0xb1, 0x89, 0x31, 0xbf,
-	0x96, 0xff, 0xf2, 0x5c, 0x53, 0xea, 0x59, 0xcd, 0xf1, 0xd7, 0xe0, 0xee, 0x15, 0x76, 0x08, 0x4d,
-	0xf0, 0x0e, 0x48, 0xc6, 0x93, 0xb7, 0x09, 0x5e, 0x40, 0xa2, 0x93, 0xbe, 0xcb, 0x47, 0x4f, 0x93,
-	0x09, 0xe9, 0xd7, 0xf8, 0xd2, 0x1d, 0x72, 0x14, 0x4e, 0x53, 0xd6, 0xaf, 0xe3, 0x5f, 0x45, 0x64,
-	0x69, 0xfa, 0xaf, 0xa4, 0xb7, 0xd2, 0xbc, 0x9a, 0xa9, 0x79, 0x17, 0xa1, 0x25, 0x06, 0x02, 0x9d,
-	0xd4, 0x8b, 0x99, 0x81, 0x27, 0xba, 0xd4, 0x40, 0xe1, 0x96, 0x1d, 0xc1, 0xb0, 0x18, 0x8a, 0xe9,
-	0x9b, 0x8a, 0x89, 0x7f, 0x71, 0xa0, 0xb1, 0x7d, 0x1c, 0x66, 0x19, 0x49, 0x17, 0x69, 0x57, 0x45,
-	0x87, 0x6b, 0xd3, 0xc1, 0xcf, 0x8b, 0xc4, 0xb3, 0x09, 0x90, 0xcd, 0x40, 0xcd, 0x78, 0x41, 0x1d,
-	0x4e, 0x8f, 0x0e, 0x92, 0x37, 0x9a, 0x6d, 0x3d, 0xe5, 0x08, 0x0f, 0xa7, 0x47, 0x4f, 0xc2, 0xd7,
-	0xc2, 0x59, 0x17, 0x4e, 0xc3, 0x82, 0xef, 0x02, 0x70, 0x20, 0x2a, 0x8d, 0x2d, 0x39, 0x72, 0xe6,
-	0xe5, 0x88, 0x3f, 0xf2, 0x2c, 0x73, 0xc5, 0x18, 0xef, 0x41, 0xf7, 0x79, 0x98, 0x30, 0xce, 0xf2,
-	0x6e, 0x16, 0x93, 0xd7, 0xef, 0x38, 0x62, 0x04, 0x6d, 0x5d, 0x78, 0x54, 0x55, 0x5c, 0x2b, 0x30,
-	0x4d, 0xf8, 0x21, 0x34, 0xee, 0x4d, 0x8f, 0x44, 0xc2, 0x23, 0xf0, 0x38, 0x36, 0xdd, 0xd1, 0xb7,
-	0x55, 0x52, 0xed, 0x18, 0x09, 0x24, 0xd6, 0xad, 0x41, 0x3d, 0xe2, 0x37, 0x08, 0x92, 0xbd, 0x40,
-	0x4e, 0x70, 0x03, 0xea, 0xf7, 0x27, 0x05, 0x3b, 0xc5, 0x25, 0x0c, 0x03, 0xf2, 0x22, 0xa1, 0x8c,
-	0x94, 0xba, 0xfc, 0x1f, 0x85, 0x59, 0x9c, 0x92, 0x92, 0x4b, 0x85, 0xd1, 0x0e, 0x1c, 0xbb, 0x1d,
-	0x20, 0xf0, 0x8a, 0x3c, 0x4f, 0x05, 0xc8, 0x5a, 0x20, 0xc6, 0xe8, 0x1a, 0xf4, 0x8a, 0x9c, 0x87,
-	0xca, 0x48, 0x79, 0x12, 0xa6, 0x4f, 0xa8, 0x78, 0x88, 0x5a, 0x30, 0x67, 0xc5, 0x6f, 0xa0, 0xf7,
-	0x58, 0xc4, 0x5c, 0x75, 0xff, 0xf7, 0x91, 0xa4, 0x2b, 0xe0, 0xcb, 0xfe, 0x2c, 0xee, 0x9e, 0xef,
-	0xdd, 0xca, 0x67, 0x08, 0x57, 0xcd, 0x14, 0x2e, 0xbc, 0x01, 0xed, 0x27, 0xe1, 0x4b, 0xc2, 0xe9,
-	0xe2, 0x01, 0x5e, 0x56, 0xa5, 0x29, 0x2f, 0xd5, 0xb5, 0x2b, 0x93, 0x4f, 0x56, 0x2a, 0x1e, 0x41,
-	0x47, 0xa8, 0x81, 0xde, 0xd2, 0x87, 0x5a, 0x12, 0x4b, 0x2d, 0x6b, 0x05, 0x7c, 0x88, 0x2f, 0x43,
-	0x77, 0x87, 0xa4, 0x84, 0xbd, 0x65, 0xc9, 0x23, 0xe8, 0x3c, 0x4e, 0x28, 0xe3, 0x0b, 0x28, 0x5f,
-	0xb1, 0xa0, 0xe6, 0x8e, 0xca, 0x7c, 0xa2, 0x6b, 0x8e, 0x8f, 0xf9, 0xcb, 0xa5, 0xc9, 0x24, 0xd1,
-	0xea, 0x2a, 0x27, 0xf8, 0x16, 0x74, 0x8d, 0x93, 0x68, 0x81, 0x3e, 0x81, 0x3a, 0xc7, 0xa9, 0xd5,
-	0x75, 0x2e, 0x06, 0xe9, 0xd3, 0xf7, 0xf3, 0x3a, 0xf9, 0xc0, 0xfb, 0xbf, 0x94, 0xf7, 0xab, 0x93,
-	0x68, 0xc1, 0xd5, 0x5d, 0x7c, 0x7f, 0xda, 0xea, 0xce, 0xfd, 0x81, 0x74, 0xe0, 0x3d, 0x58, 0xe5,
-	0x5b, 0x8c, 0xef, 0xd1, 0x0f, 0xc4, 0x70, 0x07, 0xd6, 0xce, 0x1e, 0x48, 0x0b, 0x74, 0x15, 0xbc,
-	0xb0, 0x48, 0x34, 0x92, 0x15, 0x3b, 0x85, 0xb6, 0xf6, 0x77, 0x03, 0xe1, 0xc6, 0x23, 0xe8, 0x3d,
-	0x24, 0xcc, 0x6c, 0x89, 0x73, 0x50, 0xf0, 0x6d, 0xf8, 0x3f, 0xcf, 0xd0, 0xb7, 0x2c, 0x91, 0xa5,
-	0x11, 0xe5, 0x59, 0x4c, 0x55, 0xc9, 0xeb, 0x29, 0xfe, 0x1e, 0xba, 0xf7, 0x5f, 0x33, 0x92, 0xc5,
-	0xfc, 0x88, 0x45, 0x5b, 0x55, 0x6e, 0x26, 0x56, 0x53, 0xb5, 0x8f, 0xac, 0xd9, 0x47, 0x3e, 0x84,
-	0x0b, 0x3c, 0x60, 0x92, 0x69, 0x44, 0x54, 0xb6, 0x75, 0xc1, 0xa3, 0xe6, 0x4d, 0xea, 0x89, 0xe4,
-	0x6d, 0x1d, 0xfc, 0xa3, 0x24, 0x65, 0xa4, 0x54, 0x4d, 0x47, 0xcd, 0xf0, 0xcf, 0x0e, 0xf4, 0x1f,
-	0x24, 0x59, 0x55, 0x79, 0x4b, 0x0f, 0xe8, 0x81, 0xcb, 0x72, 0x85, 0xcf, 0x65, 0xf9, 0xe2, 0x87,
-	0xe0, 0x7a, 0x46, 0xa3, 0x30, 0x93, 0x1e, 0xa9, 0x9f, 0x33, 0x83, 0x01, 0xc2, 0xb3, 0x40, 0x6c,
-	0xc1, 0xca, 0x1c, 0x06, 0x5a, 0xa0, 0x1b, 0xd0, 0xaa, 0x94, 0x4e, 0x3d, 0xe0, 0xbc, 0x06, 0xcc,
-	0x16, 0xe0, 0x10, 0xba, 0xda, 0x7c, 0xff, 0x84, 0x64, 0xec, 0xbf, 0x57, 0x90, 0xcd, 0xbf, 0x1b,
-	0xe2, 0xeb, 0x5a, 0x74, 0xe6, 0x0d, 0x68, 0x1b, 0x5f, 0x5e, 0x68, 0x4d, 0x6e, 0xb0, 0x3f, 0xc6,
-	0x86, 0x6d, 0x69, 0x15, 0xba, 0x8a, 0xbe, 0x82, 0x9e, 0xfd, 0xe5, 0x85, 0xce, 0x4b, 0xf7, 0x99,
-	0xef, 0x31, 0x7b, 0xdf, 0x01, 0x9c, 0x5f, 0xa2, 0xc7, 0x68, 0x24, 0xd7, 0x2d, 0x97, 0xeb, 0xa1,
-	0xc2, 0x65, 0x8b, 0xeb, 0x86, 0x83, 0x6e, 0x42, 0xdb, 0x48, 0x78, 0x0d, 0xdf, 0xae, 0x81, 0xe1,
-	0x1c, 0x5f, 0xe8, 0x36, 0x74, 0xcc, 0x1a, 0x40, 0xe7, 0x66, 0x87, 0x9b, 0xdb, 0x16, 0xde, 0x89,
-	0xc6, 0x00, 0xb3, 0x1a, 0x40, 0xea, 0x63, 0xcc, 0xaa, 0x0a, 0x3b, 0xec, 0x7d, 0x58, 0x5f, 0x9c,
-	0xe0, 0xe8, 0x63, 0x75, 0xfe, 0xb2, 0xf4, 0x1f, 0xae, 0xda, 0xb8, 0x45, 0x3a, 0x6c, 0x38, 0xe8,
-	0x1b, 0xe8, 0x5a, 0x49, 0x86, 0xd6, 0xe5, 0xba, 0xf9, 0xec, 0x1f, 0x9e, 0x5f, 0x68, 0xa7, 0x05,
-	0x4f, 0x29, 0xdd, 0x2a, 0x90, 0xd2, 0x12, 0xa3, 0x75, 0xd8, 0xf8, 0x6f, 0x41, 0xab, 0x52, 0x65,
-	0x84, 0x66, 0x90, 0xb5, 0xe0, 0x6b, 0x94, 0xb6, 0x74, 0xdf, 0x80, 0x56, 0xd5, 0x5a, 0xf4, 0x2e,
-	0xb3, 0xd7, 0xd8, 0x77, 0x8c, 0x01, 0x66, 0x6d, 0x46, 0x73, 0x6a, 0x35, 0x1e, 0x7b, 0x3d, 0x86,
-	0xc6, 0xbe, 0xfa, 0xd4, 0x32, 0x44, 0x79, 0x21, 0x6e, 0xa1, 0xe6, 0x26, 0x6e, 0xdd, 0x28, 0x4c,
-	0xdc, 0x33, 0xc9, 0xbf, 0xaa, 0x91, 0xbc, 0xfd, 0xf0, 0x0d, 0xe8, 0xed, 0x4f, 0x4d, 0x95, 0x46,
-	0x67, 0x25, 0xd9, 0xde, 0xb1, 0x0b, 0xfd, 0x79, 0x61, 0x47, 0x17, 0x66, 0x08, 0xe6, 0x3a, 0xc8,
-	0x70, 0xb8, 0xcc, 0x45, 0x0b, 0x74, 0x13, 0x56, 0x24, 0xc6, 0xf7, 0xb8, 0xff, 0x9e, 0xff, 0x83,
-	0x37, 0x09, 0x93, 0xec, 0xd0, 0x17, 0xff, 0xa5, 0xdc, 0xfc, 0x27, 0x00, 0x00, 0xff, 0xff, 0x47,
-	0x6e, 0x7d, 0x83, 0x5a, 0x11, 0x00, 0x00,
+	// 1502 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x58, 0x5d, 0x6f, 0xdb, 0xb6,
+	0x1a, 0x3e, 0x92, 0x65, 0xd9, 0x7e, 0xfd, 0x71, 0x1c, 0x36, 0x4d, 0x5d, 0xa3, 0xa7, 0xc7, 0x87,
+	0x27, 0x0d, 0x82, 0xad, 0x0b, 0xda, 0xb4, 0x18, 0x06, 0x74, 0xdd, 0x96, 0xc6, 0x6d, 0x66, 0xa0,
+	0x5d, 0x33, 0xa5, 0x45, 0x81, 0xdd, 0x29, 0x32, 0xd3, 0x68, 0x91, 0x25, 0x4d, 0xa4, 0xdd, 0xa6,
+	0x37, 0x03, 0x86, 0x01, 0xfb, 0x03, 0xfb, 0x61, 0xbb, 0xdb, 0xee, 0xf7, 0x47, 0x06, 0x7e, 0x48,
+	0x22, 0x15, 0x3b, 0x6b, 0x81, 0x5d, 0x99, 0xef, 0x07, 0xc9, 0x87, 0xcf, 0xfb, 0xf2, 0xa1, 0x60,
+	0x68, 0xb3, 0xf3, 0x94, 0xd0, 0x9d, 0x34, 0x4b, 0x58, 0x82, 0x9c, 0x20, 0xc9, 0x08, 0xfe, 0x11,
+	0xda, 0xaf, 0x92, 0xec, 0xec, 0x24, 0x4a, 0xde, 0xec, 0x1d, 0x4e, 0x10, 0x02, 0x27, 0xf6, 0x67,
+	0x64, 0x60, 0x8d, 0xac, 0xed, 0x96, 0x27, 0xc6, 0x68, 0x00, 0x0d, 0x4a, 0xb2, 0x45, 0x18, 0x90,
+	0x81, 0x2d, 0xdc, 0xb9, 0x89, 0xd6, 0xa1, 0x1e, 0xc6, 0xe9, 0x9c, 0x0d, 0x6a, 0xc2, 0x2f, 0x0d,
+	0xb4, 0x01, 0x6e, 0x32, 0x67, 0xdc, 0xed, 0x08, 0xb7, 0xb2, 0x78, 0x36, 0x65, 0x3e, 0x23, 0x83,
+	0xba, 0xcc, 0x16, 0x06, 0xfe, 0xc3, 0x86, 0x66, 0x8e, 0x00, 0xf5, 0xc0, 0x9e, 0x8c, 0xd5, 0xe6,
+	0xf6, 0x64, 0x8c, 0xfa, 0x50, 0xdb, 0x3b, 0x9c, 0xa8, 0x6d, 0xf9, 0x50, 0x07, 0x53, 0x33, 0xc1,
+	0x7c, 0x02, 0x2e, 0x5f, 0x71, 0x4e, 0xc5, 0xb6, 0xbd, 0xdd, 0xab, 0x3b, 0xfc, 0x80, 0x3b, 0xf9,
+	0xda, 0x3b, 0x47, 0x22, 0xe8, 0xa9, 0x24, 0xb4, 0x05, 0x0d, 0x76, 0x9a, 0x11, 0x7f, 0x4a, 0x07,
+	0xf5, 0x51, 0x6d, 0xbb, 0xbd, 0xdb, 0x91, 0xf9, 0x2f, 0x84, 0xd3, 0xcb, 0x83, 0x25, 0x6a, 0x77,
+	0x64, 0x6d, 0x77, 0x14, 0xea, 0xf2, 0xe4, 0x0d, 0xe9, 0xad, 0x9e, 0xbc, 0x29, 0xdc, 0xf9, 0xc9,
+	0x07, 0xd0, 0x58, 0x90, 0x8c, 0x86, 0x49, 0x3c, 0x68, 0x8d, 0xac, 0x6d, 0xc7, 0xcb, 0x4d, 0x74,
+	0x03, 0x5a, 0xf3, 0x74, 0xea, 0x33, 0x32, 0xdd, 0x63, 0x03, 0x10, 0xb1, 0xd2, 0x81, 0x1f, 0x82,
+	0x2b, 0x51, 0xa3, 0x36, 0x34, 0x26, 0xf1, 0xc2, 0x8f, 0xc2, 0x69, 0xff, 0x5f, 0xdc, 0x38, 0x62,
+	0x7e, 0xc6, 0xc8, 0xb4, 0x6f, 0x71, 0xc3, 0x9b, 0xc7, 0x71, 0x18, 0xbf, 0xee, 0xdb, 0xa8, 0x03,
+	0xcd, 0x27, 0x61, 0x1c, 0xd2, 0x53, 0x32, 0xed, 0xd7, 0xf0, 0x6f, 0x36, 0xb8, 0xf2, 0x38, 0x17,
+	0x88, 0x1d, 0x42, 0xf3, 0x8d, 0x22, 0x46, 0xb1, 0x5b, 0xd8, 0x3a, 0xc5, 0x8e, 0x49, 0xf1, 0xc7,
+	0x05, 0xc5, 0xae, 0xa0, 0xf8, 0x8a, 0x4e, 0x59, 0x95, 0xe0, 0x4d, 0x70, 0x29, 0x89, 0x48, 0xc0,
+	0x44, 0xbd, 0x0b, 0x7e, 0x8f, 0x84, 0xcf, 0x53, 0x31, 0x74, 0x13, 0x9c, 0xc0, 0x8f, 0xa2, 0x41,
+	0x47, 0xe4, 0x80, 0xcc, 0xd9, 0xf7, 0xa3, 0xc8, 0x13, 0x7e, 0x4e, 0xd0, 0x71, 0x94, 0x04, 0x67,
+	0x82, 0xa0, 0xa6, 0x24, 0xa8, 0x70, 0xa0, 0x11, 0xb4, 0xe7, 0x71, 0x19, 0x97, 0xe4, 0xea, 0x2e,
+	0x7e, 0x50, 0xbe, 0xce, 0xb1, 0x1f, 0x9c, 0x0d, 0xba, 0xf2, 0xa0, 0xb9, 0x8d, 0xef, 0xae, 0xa4,
+	0xf7, 0x91, 0x9c, 0xdf, 0xb7, 0x50, 0x17, 0x5a, 0x2f, 0xf3, 0xe5, 0xfa, 0x36, 0xce, 0xc0, 0x79,
+	0x71, 0x9e, 0x92, 0x0b, 0x7c, 0x8e, 0xa0, 0x3d, 0x25, 0x34, 0xc8, 0xc2, 0x94, 0xf1, 0x2a, 0x4b,
+	0x4a, 0x75, 0x17, 0xba, 0x09, 0xf0, 0x3d, 0x4d, 0xe2, 0xa3, 0xe0, 0x94, 0xcc, 0x7c, 0xd1, 0xbb,
+	0x1d, 0x4f, 0xf3, 0xe8, 0x3d, 0xe2, 0x18, 0x3d, 0x82, 0xcf, 0x61, 0xed, 0xa5, 0x68, 0x89, 0xbc,
+	0x95, 0x3d, 0xf2, 0x03, 0xfa, 0x48, 0x2b, 0xa0, 0x25, 0xb8, 0xeb, 0x99, 0xfd, 0xae, 0x15, 0x74,
+	0x03, 0x5c, 0x7e, 0x80, 0xc9, 0x58, 0xe0, 0x72, 0x3c, 0x65, 0x55, 0xd9, 0xab, 0x5d, 0x60, 0x0f,
+	0xff, 0x6c, 0x81, 0x2b, 0x0b, 0x86, 0x46, 0x50, 0x0f, 0x7c, 0x4a, 0xe8, 0xc0, 0x12, 0xb7, 0xa5,
+	0xa8, 0x14, 0x25, 0x9e, 0x0c, 0xa0, 0x4d, 0xe8, 0x16, 0x73, 0xb9, 0x5f, 0xed, 0x66, 0x3a, 0x79,
+	0x41, 0x32, 0x12, 0x2c, 0xc6, 0x3e, 0xcb, 0x59, 0x28, 0x6c, 0x0e, 0x34, 0x88, 0x12, 0x4a, 0xa6,
+	0x82, 0x82, 0xa6, 0xa7, 0x2c, 0xfc, 0xbb, 0x05, 0x4e, 0x3e, 0xb9, 0xa8, 0xa6, 0x65, 0x56, 0x13,
+	0xfd, 0x07, 0xec, 0x24, 0x15, 0x7b, 0xf6, 0x76, 0xbb, 0x25, 0xba, 0x9d, 0xe7, 0xa9, 0x67, 0x27,
+	0x29, 0x57, 0xb6, 0xe0, 0xd4, 0x8f, 0x95, 0x6a, 0x88, 0x31, 0xf7, 0xb1, 0x70, 0x46, 0x14, 0xe1,
+	0x62, 0xcc, 0x7d, 0x53, 0x8e, 0xad, 0x2e, 0xb0, 0x89, 0x31, 0xdf, 0x96, 0xff, 0xf2, 0xca, 0x8b,
+	0xce, 0x6f, 0x79, 0x85, 0x8d, 0x3f, 0x07, 0xfb, 0x79, 0x6a, 0x36, 0x50, 0x13, 0x9c, 0x23, 0x12,
+	0xf3, 0xee, 0x69, 0x82, 0xe3, 0x91, 0x60, 0xd1, 0xb7, 0xf9, 0xe8, 0x45, 0x38, 0x23, 0xfd, 0x1a,
+	0x4f, 0x1d, 0x93, 0x13, 0x7f, 0x1e, 0xb1, 0x7e, 0x1d, 0xff, 0x2a, 0x4e, 0x16, 0x45, 0xef, 0xa1,
+	0x7c, 0x86, 0xd8, 0x16, 0x92, 0x73, 0x03, 0x5a, 0x62, 0x20, 0xb0, 0xc9, 0xeb, 0x5a, 0x3a, 0x78,
+	0xd3, 0x49, 0x09, 0x12, 0x61, 0xa9, 0xbb, 0x9a, 0x47, 0x13, 0x2c, 0x57, 0x17, 0x2c, 0xfc, 0x8b,
+	0x05, 0x8d, 0xfd, 0x53, 0x3f, 0x8e, 0x49, 0xb4, 0x4c, 0x3a, 0x0a, 0x32, 0x6c, 0x93, 0x0c, 0xad,
+	0x80, 0x35, 0xbd, 0x80, 0x1c, 0xc7, 0xf1, 0xfc, 0xe4, 0x99, 0xff, 0xf6, 0x28, 0x7c, 0x27, 0x71,
+	0x38, 0x9e, 0xe6, 0xe1, 0xcd, 0x7f, 0x3c, 0x3f, 0x11, 0x41, 0xd5, 0xfc, 0xca, 0xc4, 0x5f, 0x00,
+	0x70, 0x20, 0xaa, 0x09, 0x0d, 0x35, 0xb0, 0xaa, 0x6a, 0xc0, 0x4b, 0x5c, 0xf6, 0x9d, 0x18, 0xe3,
+	0xe7, 0xd0, 0x7d, 0xe5, 0x87, 0x8c, 0x73, 0x3c, 0x89, 0xa7, 0xe4, 0xed, 0xdf, 0x2c, 0x31, 0x82,
+	0x76, 0x7e, 0x6d, 0xa8, 0xba, 0x2f, 0x2d, 0x4f, 0x77, 0xe1, 0x03, 0x68, 0x3c, 0x9a, 0x9f, 0x88,
+	0x76, 0x45, 0xe0, 0x70, 0x6c, 0xf9, 0x63, 0xb9, 0xaf, 0x5a, 0x6a, 0xac, 0xb5, 0x8f, 0xc8, 0x5b,
+	0x87, 0x7a, 0xc0, 0x77, 0x10, 0x24, 0x3b, 0x9e, 0x34, 0x70, 0x03, 0xea, 0x8f, 0x67, 0x29, 0x3b,
+	0xc7, 0x19, 0x0c, 0x3d, 0xf2, 0x3a, 0xa4, 0x8c, 0x64, 0xf9, 0xe5, 0xfd, 0xda, 0x8f, 0xa7, 0x11,
+	0xc9, 0xf8, 0x45, 0xd7, 0xd4, 0xd8, 0x32, 0xd5, 0x18, 0x81, 0x93, 0x26, 0x49, 0x24, 0x40, 0xd6,
+	0x3c, 0x31, 0x46, 0x5b, 0xd0, 0x4b, 0x13, 0x7e, 0x54, 0x46, 0xb2, 0x85, 0x1f, 0x3d, 0xa3, 0xa2,
+	0x10, 0x35, 0xaf, 0xe2, 0xc5, 0xef, 0xa0, 0xf7, 0x54, 0x9c, 0xb9, 0x78, 0x7a, 0x3f, 0x44, 0x50,
+	0x36, 0xc1, 0x95, 0xcf, 0xa3, 0xd8, 0xbb, 0xfa, 0x74, 0xaa, 0x98, 0x26, 0x3b, 0x35, 0x5d, 0x76,
+	0xf0, 0x08, 0x3a, 0xfb, 0xbc, 0x2d, 0x38, 0x5f, 0xfc, 0x84, 0x7d, 0xa8, 0x4d, 0xc6, 0x52, 0x57,
+	0x5a, 0x1e, 0x1f, 0xe2, 0xff, 0x41, 0x77, 0x4c, 0x22, 0xc2, 0x2e, 0x49, 0xb9, 0x01, 0x70, 0x40,
+	0x58, 0x1e, 0xaf, 0xf4, 0x28, 0xfe, 0x0c, 0x3a, 0x4f, 0x43, 0x2a, 0xc2, 0x94, 0xc7, 0x11, 0x38,
+	0x27, 0x59, 0x32, 0x53, 0xf5, 0x14, 0x63, 0x5e, 0x95, 0x28, 0x9c, 0x85, 0xb9, 0xee, 0x49, 0x03,
+	0xdf, 0x87, 0xae, 0x36, 0x93, 0xa6, 0xe8, 0xff, 0x50, 0xe7, 0x5a, 0x91, 0xeb, 0x5e, 0xae, 0x2c,
+	0xf2, 0x72, 0x78, 0x32, 0xa6, 0xd0, 0xf0, 0x2b, 0x70, 0x09, 0x1a, 0x1e, 0xfe, 0x40, 0x34, 0x77,
+	0x25, 0x1a, 0x35, 0x93, 0xa6, 0x5c, 0x85, 0xc5, 0x37, 0x9c, 0xa9, 0xc2, 0x62, 0x63, 0x19, 0xc0,
+	0x9b, 0x80, 0x0e, 0x08, 0xd3, 0xbe, 0xe9, 0xe8, 0x32, 0x48, 0x5f, 0xc2, 0x15, 0xbe, 0x70, 0x35,
+	0xed, 0xfd, 0x91, 0x3d, 0x84, 0xf5, 0x8b, 0x0b, 0xd0, 0x14, 0xdd, 0x02, 0x87, 0x8f, 0x15, 0xbe,
+	0x35, 0xb3, 0x85, 0xf6, 0x0e, 0x27, 0x9e, 0x08, 0xe3, 0x11, 0xf4, 0x34, 0x94, 0xcb, 0x10, 0x3e,
+	0x80, 0x7f, 0xf3, 0x0e, 0xbd, 0x24, 0x45, 0x5e, 0x8d, 0x20, 0x89, 0xa7, 0x54, 0x5d, 0xf9, 0xdc,
+	0xc4, 0xdf, 0x42, 0xf7, 0xf1, 0x5b, 0x46, 0xe2, 0x29, 0x5f, 0x62, 0xd9, 0xd4, 0x55, 0x4f, 0xa2,
+	0xb6, 0x64, 0xcd, 0x5c, 0xf2, 0x00, 0xae, 0xf3, 0x03, 0x93, 0x38, 0x47, 0x44, 0xe5, 0xa3, 0x6c,
+	0xf0, 0x26, 0xf5, 0x44, 0xf2, 0xb6, 0x01, 0xee, 0x49, 0x18, 0x31, 0x92, 0xa9, 0x27, 0x47, 0x59,
+	0xf8, 0x27, 0x0b, 0xfa, 0x4f, 0xc2, 0xb8, 0xb8, 0x79, 0x2b, 0x17, 0xe8, 0x81, 0xcd, 0x12, 0x85,
+	0xcf, 0x66, 0xc9, 0xf2, 0x42, 0x70, 0x3d, 0xa3, 0x81, 0x1f, 0xcb, 0x88, 0x54, 0xd6, 0xd2, 0xa1,
+	0x81, 0x70, 0x0c, 0x10, 0x7b, 0xb0, 0x56, 0xc1, 0x40, 0x53, 0x74, 0x1b, 0x5a, 0x85, 0xd2, 0xa9,
+	0x02, 0x56, 0x35, 0xa0, 0x4c, 0xc0, 0x3e, 0x74, 0x73, 0xf7, 0xe3, 0x05, 0x89, 0xd9, 0x3f, 0xaf,
+	0x20, 0xbb, 0x7f, 0x36, 0xc4, 0xc7, 0xad, 0x78, 0x97, 0xb7, 0xa0, 0xfd, 0x0d, 0x79, 0x53, 0xc8,
+	0x95, 0xf6, 0xa5, 0x38, 0x6c, 0xcb, 0xb1, 0x50, 0x53, 0xf4, 0x29, 0xf4, 0xcc, 0xaf, 0x25, 0x74,
+	0x4d, 0x86, 0x2f, 0x7c, 0x43, 0x99, 0xf3, 0x8e, 0xe0, 0xda, 0x0a, 0x15, 0x46, 0x23, 0x99, 0xb7,
+	0x5a, 0xa4, 0x87, 0xeb, 0x32, 0xc3, 0x94, 0xd4, 0x3b, 0x16, 0xba, 0x07, 0x6d, 0xad, 0xcd, 0x91,
+	0x4a, 0x33, 0x3b, 0x7f, 0x58, 0x61, 0x09, 0x3d, 0x80, 0x8e, 0xde, 0xf9, 0xe8, 0x6a, 0xb9, 0xb8,
+	0x3e, 0x6d, 0xe9, 0x9e, 0x68, 0x07, 0xa0, 0xec, 0x7c, 0xa4, 0x3e, 0xd0, 0x8d, 0xbb, 0x60, 0x1e,
+	0xfb, 0x10, 0x36, 0x96, 0xb7, 0x35, 0xfa, 0xaf, 0x5a, 0x7f, 0x55, 0xd3, 0x0f, 0xaf, 0x98, 0xb8,
+	0x45, 0x13, 0xdc, 0xb1, 0xd0, 0x57, 0xd0, 0x35, 0x5a, 0x0b, 0x6d, 0xc8, 0xbc, 0x6a, 0xcf, 0x0f,
+	0xaf, 0x2d, 0xf5, 0xd3, 0x14, 0x6d, 0x41, 0xf3, 0x99, 0x7f, 0x26, 0xc4, 0x1f, 0x99, 0x7a, 0x6b,
+	0x62, 0xbf, 0x0f, 0xad, 0x42, 0xab, 0x11, 0x2a, 0xe1, 0xe6, 0xb2, 0x9f, 0x23, 0x34, 0x05, 0xfd,
+	0x36, 0xb4, 0x8a, 0xe7, 0x27, 0x9f, 0xa5, 0xbf, 0x47, 0xe6, 0x1e, 0x3b, 0x00, 0xe5, 0x53, 0x94,
+	0xf3, 0x69, 0x3c, 0x4e, 0x66, 0x3e, 0x86, 0xc6, 0xa1, 0xfa, 0xb8, 0xd2, 0xc4, 0x79, 0x29, 0x6e,
+	0xa1, 0xea, 0x3a, 0xee, 0xfc, 0x81, 0xd0, 0x71, 0x97, 0xd2, 0x7f, 0x2b, 0x47, 0x72, 0xf9, 0xe2,
+	0x77, 0xa0, 0x77, 0x38, 0xd7, 0x75, 0x19, 0x5d, 0x14, 0x61, 0x73, 0xc6, 0x04, 0xfa, 0x55, 0x29,
+	0x47, 0xd7, 0x4b, 0x04, 0x95, 0x37, 0x62, 0x38, 0x5c, 0x15, 0xa2, 0x29, 0xba, 0x07, 0x6b, 0x12,
+	0xe3, 0x07, 0xec, 0xff, 0xc8, 0xfd, 0xce, 0x99, 0xf9, 0x61, 0x7c, 0xec, 0x8a, 0xff, 0x25, 0xee,
+	0xfd, 0x15, 0x00, 0x00, 0xff, 0xff, 0x2f, 0xe6, 0x68, 0x72, 0xa6, 0x10, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -2087,7 +2059,7 @@ const _ = grpc.SupportPackageIsVersion4
 type RuntimeClient interface {
 	// Create new workflow using specified Input and API to call
 	// If workflow is already created - error will be returned
-	NewWorkflow(ctx context.Context, in *NewWorkflowReq, opts ...grpc.CallOption) (*Empty, error)
+	NewWorkflow(ctx context.Context, in *Call, opts ...grpc.CallOption) (*Empty, error)
 	// Update previously locked workflow with the new state
 	// This operation may fail if some of selects were removed, while being unblocked.
 	UpdateWorkflow(ctx context.Context, in *UpdateWorkflowReq, opts ...grpc.CallOption) (*Empty, error)
@@ -2103,18 +2075,22 @@ type RuntimeClient interface {
 	GetWorkflow(ctx context.Context, in *GetWorkflowReq, opts ...grpc.CallOption) (*Workflow, error)
 	// Manually lock workflow to change it's state via UpdateWorkflow
 	LockWorkflow(ctx context.Context, in *LockWorkflowReq, opts ...grpc.CallOption) (*LockedWorkflow, error)
-	// Manually lock workflow to change it's state via UpdateWorkflow
+	// ExtendLock to ensure long-running operations are handled properly.
 	ExtendLock(ctx context.Context, in *ExtendLockReq, opts ...grpc.CallOption) (*Empty, error)
 	// Listen for updates states. You can use this to sync data with other DB's, for ex. Search / Reports / etc.
 	ListenWorkflowsUpdates(ctx context.Context, in *ListenWorkflowsUpdatesReq, opts ...grpc.CallOption) (Runtime_ListenWorkflowsUpdatesClient, error)
+	// Simple query API for debugging purposes.
 	FindWorkflows(ctx context.Context, in *FindWorkflowsReq, opts ...grpc.CallOption) (*FindWorkflowsResp, error)
-	MakeChan(ctx context.Context, in *MakeChanReq, opts ...grpc.CallOption) (*Empty, error)
+	// Channel management
+	MakeChan(ctx context.Context, in *Channel, opts ...grpc.CallOption) (*Empty, error)
 	ListChans(ctx context.Context, in *ListChansReq, opts ...grpc.CallOption) (*ListChansResp, error)
 	CloseChan(ctx context.Context, in *CloseChanReq, opts ...grpc.CallOption) (*Empty, error)
 	DeleteChan(ctx context.Context, in *DeleteChanReq, opts ...grpc.CallOption) (*Empty, error)
+	// Type management
 	PutType(ctx context.Context, in *Type, opts ...grpc.CallOption) (*Empty, error)
 	ListTypes(ctx context.Context, in *ListTypesReq, opts ...grpc.CallOption) (*ListTypesResp, error)
 	DeleteType(ctx context.Context, in *Type, opts ...grpc.CallOption) (*Empty, error)
+	// API management
 	PutWorkflowAPI(ctx context.Context, in *WorkflowAPI, opts ...grpc.CallOption) (*Empty, error)
 	ListWorkflowAPIs(ctx context.Context, in *ListWorkflowAPIsReq, opts ...grpc.CallOption) (*ListWorkflowAPIsResp, error)
 	DeleteWorkflowAPI(ctx context.Context, in *WorkflowAPI, opts ...grpc.CallOption) (*Empty, error)
@@ -2128,7 +2104,7 @@ func NewRuntimeClient(cc *grpc.ClientConn) RuntimeClient {
 	return &runtimeClient{cc}
 }
 
-func (c *runtimeClient) NewWorkflow(ctx context.Context, in *NewWorkflowReq, opts ...grpc.CallOption) (*Empty, error) {
+func (c *runtimeClient) NewWorkflow(ctx context.Context, in *Call, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/core.Runtime/NewWorkflow", in, out, opts...)
 	if err != nil {
@@ -2246,7 +2222,7 @@ func (c *runtimeClient) FindWorkflows(ctx context.Context, in *FindWorkflowsReq,
 	return out, nil
 }
 
-func (c *runtimeClient) MakeChan(ctx context.Context, in *MakeChanReq, opts ...grpc.CallOption) (*Empty, error) {
+func (c *runtimeClient) MakeChan(ctx context.Context, in *Channel, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/core.Runtime/MakeChan", in, out, opts...)
 	if err != nil {
@@ -2340,7 +2316,7 @@ func (c *runtimeClient) DeleteWorkflowAPI(ctx context.Context, in *WorkflowAPI, 
 type RuntimeServer interface {
 	// Create new workflow using specified Input and API to call
 	// If workflow is already created - error will be returned
-	NewWorkflow(context.Context, *NewWorkflowReq) (*Empty, error)
+	NewWorkflow(context.Context, *Call) (*Empty, error)
 	// Update previously locked workflow with the new state
 	// This operation may fail if some of selects were removed, while being unblocked.
 	UpdateWorkflow(context.Context, *UpdateWorkflowReq) (*Empty, error)
@@ -2356,18 +2332,22 @@ type RuntimeServer interface {
 	GetWorkflow(context.Context, *GetWorkflowReq) (*Workflow, error)
 	// Manually lock workflow to change it's state via UpdateWorkflow
 	LockWorkflow(context.Context, *LockWorkflowReq) (*LockedWorkflow, error)
-	// Manually lock workflow to change it's state via UpdateWorkflow
+	// ExtendLock to ensure long-running operations are handled properly.
 	ExtendLock(context.Context, *ExtendLockReq) (*Empty, error)
 	// Listen for updates states. You can use this to sync data with other DB's, for ex. Search / Reports / etc.
 	ListenWorkflowsUpdates(*ListenWorkflowsUpdatesReq, Runtime_ListenWorkflowsUpdatesServer) error
+	// Simple query API for debugging purposes.
 	FindWorkflows(context.Context, *FindWorkflowsReq) (*FindWorkflowsResp, error)
-	MakeChan(context.Context, *MakeChanReq) (*Empty, error)
+	// Channel management
+	MakeChan(context.Context, *Channel) (*Empty, error)
 	ListChans(context.Context, *ListChansReq) (*ListChansResp, error)
 	CloseChan(context.Context, *CloseChanReq) (*Empty, error)
 	DeleteChan(context.Context, *DeleteChanReq) (*Empty, error)
+	// Type management
 	PutType(context.Context, *Type) (*Empty, error)
 	ListTypes(context.Context, *ListTypesReq) (*ListTypesResp, error)
 	DeleteType(context.Context, *Type) (*Empty, error)
+	// API management
 	PutWorkflowAPI(context.Context, *WorkflowAPI) (*Empty, error)
 	ListWorkflowAPIs(context.Context, *ListWorkflowAPIsReq) (*ListWorkflowAPIsResp, error)
 	DeleteWorkflowAPI(context.Context, *WorkflowAPI) (*Empty, error)
@@ -2378,7 +2358,7 @@ func RegisterRuntimeServer(s *grpc.Server, srv RuntimeServer) {
 }
 
 func _Runtime_NewWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(NewWorkflowReq)
+	in := new(Call)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -2390,7 +2370,7 @@ func _Runtime_NewWorkflow_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/core.Runtime/NewWorkflow",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RuntimeServer).NewWorkflow(ctx, req.(*NewWorkflowReq))
+		return srv.(RuntimeServer).NewWorkflow(ctx, req.(*Call))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2528,7 +2508,7 @@ func _Runtime_FindWorkflows_Handler(srv interface{}, ctx context.Context, dec fu
 }
 
 func _Runtime_MakeChan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MakeChanReq)
+	in := new(Channel)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -2540,7 +2520,7 @@ func _Runtime_MakeChan_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: "/core.Runtime/MakeChan",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RuntimeServer).MakeChan(ctx, req.(*MakeChanReq))
+		return srv.(RuntimeServer).MakeChan(ctx, req.(*Channel))
 	}
 	return interceptor(ctx, in, info, handler)
 }

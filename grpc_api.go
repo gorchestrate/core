@@ -25,7 +25,7 @@ type Server struct {
 }
 
 func (srv *Server) GetWorkflow(ctx context.Context, req *GetWorkflowReq) (*Workflow, error) {
-	p := srv.r.getWorkflow(req.Id)
+	p := srv.r.getWorkflow(req.ID)
 	if p == nil {
 		return nil, fmt.Errorf("not found")
 	}
@@ -133,19 +133,19 @@ func (srv *Server) DeleteType(ctx context.Context, req *Type) (*Empty, error) {
 }
 
 // TODO: also make MakeChan a deferred operation?
-func (srv *Server) MakeChan(ctx context.Context, req *MakeChanReq) (*Empty, error) {
-	if req.Chan.Id == "" {
+func (srv *Server) MakeChan(ctx context.Context, c *Channel) (*Empty, error) {
+	if c.ID == "" {
 		return nil, fmt.Errorf("channel id is emptry")
 	}
-	if req.Chan.Closed {
+	if c.Closed {
 		return nil, fmt.Errorf("can't make closed channel")
 	}
-	if req.Chan.BufSize != 0 {
+	if c.BufSize != 0 {
 		return nil, fmt.Errorf("buf size is set by server")
 	}
-	pType := srv.r.getType(req.Chan.DataType)
+	pType := srv.r.getType(c.DataType)
 	if pType == nil {
-		return nil, fmt.Errorf("can't find type '%v' for channel", req.Chan.DataType)
+		return nil, fmt.Errorf("can't find type '%v' for channel", c.DataType)
 	}
 	for {
 		srv.r.batchMu.Lock()
@@ -156,9 +156,9 @@ func (srv *Server) MakeChan(ctx context.Context, req *MakeChanReq) (*Empty, erro
 		break
 	}
 	srv.r.newChannels = append(srv.r.newChannels, &Channel{
-		DataType:   req.Chan.DataType,
-		Id:         req.Chan.Id,
-		BufMaxSize: req.Chan.BufMaxSize,
+		DataType:   c.DataType,
+		ID:         c.ID,
+		BufMaxSize: c.BufMaxSize,
 	})
 	cb := srv.r.done
 	srv.r.batchMu.Unlock()
@@ -167,19 +167,19 @@ func (srv *Server) MakeChan(ctx context.Context, req *MakeChanReq) (*Empty, erro
 }
 
 func (srv *Server) ListWorkflowAPIs(ctx context.Context, req *ListWorkflowAPIsReq) (*ListWorkflowAPIsResp, error) {
-	if req.Id != "" {
-		item, err := srv.r.db.GetCF(srv.r.ro, srv.r.cfhAPIs, []byte(req.Id))
-		if err != nil {
-			return nil, err
-		}
-		defer item.Free()
-		if !item.Exists() {
-			return &ListWorkflowAPIsResp{}, nil
-		}
-		var p WorkflowAPI
-		Unmarshal(item.Data(), &p)
-		return &ListWorkflowAPIsResp{Apis: []*WorkflowAPI{&p}}, nil
-	}
+	// if req.ID != "" {
+	// 	item, err := srv.r.db.GetCF(srv.r.ro, srv.r.cfhAPIs, []byte(req.ID))
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	defer item.Free()
+	// 	if !item.Exists() {
+	// 		return &ListWorkflowAPIsResp{}, nil
+	// 	}
+	// 	var p WorkflowAPI
+	// 	Unmarshal(item.Data(), &p)
+	// 	return &ListWorkflowAPIsResp{Apis: []*WorkflowAPI{&p}}, nil
+	// }
 	ret := []*WorkflowAPI{}
 	opts := gorocksdb.NewDefaultReadOptions()
 	opts.SetFillCache(false)
@@ -195,7 +195,7 @@ func (srv *Server) ListWorkflowAPIs(ctx context.Context, req *ListWorkflowAPIsRe
 		it.Value().Free()
 	}
 	return &ListWorkflowAPIsResp{
-		Apis: ret,
+		APIs: ret,
 	}, nil
 }
 
@@ -236,8 +236,8 @@ func (srv *Server) DeleteWorkflowAPI(ctx context.Context, req *WorkflowAPI) (*Em
 }
 
 func (srv *Server) PutType(ctx context.Context, req *Type) (*Empty, error) {
-	if req.Id == "" {
-		return nil, fmt.Errorf("Id is empty")
+	if req.ID == "" {
+		return nil, fmt.Errorf("ID is empty")
 	}
 	new := jsonschema.Schema{}
 	err := json.Unmarshal(req.JsonSchema, &new)
@@ -248,24 +248,24 @@ func (srv *Server) PutType(ctx context.Context, req *Type) (*Empty, error) {
 	// TODO: you cannot put type that is not backward-compatible with the old one.
 
 	wb := gorocksdb.NewWriteBatch()
-	wb.PutCF(srv.r.cfhTypes, []byte(req.Id), Marshal(req))
+	wb.PutCF(srv.r.cfhTypes, []byte(req.ID), Marshal(req))
 	return &Empty{}, srv.r.db.Write(srv.r.wo, wb)
 }
 
 func (srv *Server) ListTypes(ctx context.Context, req *ListTypesReq) (*ListTypesResp, error) {
-	if req.Id != "" {
-		item, err := srv.r.db.GetCF(srv.r.ro, srv.r.cfhTypes, []byte(req.Id))
-		if err != nil {
-			return nil, err
-		}
-		defer item.Free()
-		if !item.Exists() {
-			return &ListTypesResp{}, nil
-		}
-		var p Type
-		Unmarshal(item.Data(), &p)
-		return &ListTypesResp{Types: []*Type{&p}}, nil
-	}
+	// if req.ID != "" {
+	// 	item, err := srv.r.db.GetCF(srv.r.ro, srv.r.cfhTypes, []byte(req.ID))
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	defer item.Free()
+	// 	if !item.Exists() {
+	// 		return &ListTypesResp{}, nil
+	// 	}
+	// 	var p Type
+	// 	Unmarshal(item.Data(), &p)
+	// 	return &ListTypesResp{Types: []*Type{&p}}, nil
+	// }
 	ret := []*Type{}
 	opts := gorocksdb.NewDefaultReadOptions()
 	opts.SetFillCache(false)
@@ -286,19 +286,19 @@ func (srv *Server) ListTypes(ctx context.Context, req *ListTypesReq) (*ListTypes
 }
 
 func (srv *Server) ListChans(ctx context.Context, req *ListChansReq) (*ListChansResp, error) {
-	if req.Id != "" {
-		item, err := srv.r.db.GetCF(srv.r.ro, srv.r.cfhChannels, []byte(req.Id))
-		if err != nil {
-			return nil, err
-		}
-		defer item.Free()
-		if !item.Exists() {
-			return &ListChansResp{}, nil
-		}
-		var p Channel
-		Unmarshal(item.Data(), &p)
-		return &ListChansResp{Chans: []*Channel{&p}}, nil
-	}
+	// if req.ID != "" {
+	// 	item, err := srv.r.db.GetCF(srv.r.ro, srv.r.cfhChannels, []byte(req.ID))
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	defer item.Free()
+	// 	if !item.Exists() {
+	// 		return &ListChansResp{}, nil
+	// 	}
+	// 	var p Channel
+	// 	Unmarshal(item.Data(), &p)
+	// 	return &ListChansResp{Chans: []*Channel{&p}}, nil
+	// }
 	ret := []*Channel{}
 	opts := gorocksdb.NewDefaultReadOptions()
 	opts.SetFillCache(false)
@@ -340,7 +340,7 @@ func (srv *Server) ExtendLock(ctx context.Context, req *ExtendLockReq) (*Empty, 
 	if req.Seconds == 0 {
 		req.Seconds = 30
 	}
-	if !srv.r.extendWorkflowLock(req.Id, req.Lockid, time.Second*time.Duration(req.Seconds)) {
+	if !srv.r.extendWorkflowLock(req.ID, req.LockID, time.Second*time.Duration(req.Seconds)) {
 		return nil, fmt.Errorf("lock expired")
 	}
 	return &Empty{}, nil
@@ -355,31 +355,31 @@ func (srv *Server) LockWorkflow(ctx context.Context, req *LockWorkflowReq) (*Loc
 	if req.Seconds == 0 {
 		req.Seconds = 30
 	}
-	err := validateString(req.Id, "workflow id")
+	err := validateString(req.ID, "workflow id")
 	if err != nil {
 		return nil, err
 	}
-	l := srv.r.lockWorkflow(ctx, req.Id, time.Second*time.Duration(req.Seconds))
+	l := srv.r.lockWorkflow(ctx, req.ID, time.Second*time.Duration(req.Seconds))
 	if l == nil {
 		return nil, fmt.Errorf("can't lock workflow")
 	}
-	old := srv.r.getWorkflow(req.Id)
+	old := srv.r.getWorkflow(req.ID)
 	if old == nil {
-		srv.r.unlockWorkflow(req.Id, l.id)
+		srv.r.unlockWorkflow(req.ID, l.id)
 		return nil, fmt.Errorf("workflow not found")
 	}
 	return &LockedWorkflow{
 		Workflow: old,
-		LockId:   l.id,
+		LockID:   l.id,
 	}, nil
 }
 
 func (srv *Server) UpdateWorkflow(ctx context.Context, req *UpdateWorkflowReq) (out *Empty, err error) {
-	err = validateString(req.Workflow.Id, "workflow id")
+	err = validateString(req.Workflow.ID, "workflow id")
 	if err != nil {
 		return nil, err
 	}
-	err = validateString(req.Workflow.Name, "workflow name")
+	err = validateString(req.Workflow.API, "workflow api")
 	if err != nil {
 		return nil, err
 	}
@@ -395,13 +395,13 @@ func (srv *Server) UpdateWorkflow(ctx context.Context, req *UpdateWorkflowReq) (
 	for _, t := range req.Workflow.Threads {
 		err := validateAndFillThread(req.Workflow, t)
 		if err != nil {
-			return nil, fmt.Errorf("thread %v: %v", t.Id, err)
+			return nil, fmt.Errorf("thread %v: %v", t.ID, err)
 		}
 	}
 
-	api := srv.r.getWorkflowAPI(req.Workflow.Name)
+	api := srv.r.getWorkflowAPI(req.Workflow.API)
 	if api == nil {
-		return nil, fmt.Errorf("workflow api %v not found", req.Workflow.Name)
+		return nil, fmt.Errorf("workflow api %v not found", req.Workflow.API)
 	}
 	if req.Workflow.Status == Workflow_Finished {
 		err = srv.ValidateType(api.Output, req.Workflow.Output)
@@ -416,15 +416,15 @@ func (srv *Server) UpdateWorkflow(ctx context.Context, req *UpdateWorkflowReq) (
 		return nil, fmt.Errorf("workflow state is invalid: %v", err)
 	}
 
-	if req.LockId == 0 {
-		slock := srv.r.lockWorkflow(ctx, req.Workflow.Id, time.Second*30)
-		req.LockId = slock.id
-	} else if !srv.r.extendWorkflowLock(req.Workflow.Id, req.LockId, time.Second*30) {
+	if req.LockID == 0 {
+		slock := srv.r.lockWorkflow(ctx, req.Workflow.ID, time.Second*30)
+		req.LockID = slock.id
+	} else if !srv.r.extendWorkflowLock(req.Workflow.ID, req.LockID, time.Second*30) {
 		return nil, fmt.Errorf("lock expired")
 	}
 	defer func() {
 		if err == nil { // unlock only successful operations
-			srv.r.unlockWorkflow(req.Workflow.Id, req.LockId)
+			srv.r.unlockWorkflow(req.Workflow.ID, req.LockID)
 		}
 	}()
 
@@ -438,27 +438,27 @@ func (srv *Server) UpdateWorkflow(ctx context.Context, req *UpdateWorkflowReq) (
 			return &Empty{}, nil
 		}
 		g.mu.Lock()
-		q := g.stateQueues[req.Workflow.Id]
+		q := g.stateQueues[req.Workflow.ID]
 		g.mu.Unlock()
 		if len(q.Queue) == 0 {
 			g.mu.Unlock()
-			return nil, fmt.Errorf("state queue %v is empty", req.Workflow.Id)
+			return nil, fmt.Errorf("state queue %v is empty", req.Workflow.ID)
 		}
-		if q.Lock.id != req.LockId {
+		if q.Lock.id != req.LockID {
 			g.mu.Unlock()
-			return nil, fmt.Errorf("state queue %v lock id mismatch %v %v", req.Workflow.Id, req.LockId, q.Lock.id)
+			return nil, fmt.Errorf("state queue %v lock id mismatch %v %v", req.Workflow.ID, req.LockID, q.Lock.id)
 		}
 		oldSel = q.Queue[0]
 	}
 
-	old := srv.r.getWorkflow(req.Workflow.Id)
+	old := srv.r.getWorkflow(req.Workflow.ID)
 	if old != nil && old.Version != req.Workflow.Version-1 {
 		return nil, fmt.Errorf("version mismatch")
 	}
 
 	toCreate, err := NewThreads(req.Workflow, old, oldSel)
 	if err != nil {
-		return nil, fmt.Errorf("state queue %v is empty", req.Workflow.Id)
+		return nil, fmt.Errorf("state queue %v is empty", req.Workflow.ID)
 	}
 
 	// If thread called new workflow inside - create this workflow.
@@ -526,7 +526,7 @@ func (srv *Server) UpdateWorkflow(ctx context.Context, req *UpdateWorkflowReq) (
 			return &Empty{}, nil
 		}
 		g.mu.Lock()
-		q := g.stateQueues[req.Workflow.Id]
+		q := g.stateQueues[req.Workflow.ID]
 		q.Queue = q.Queue[1:]
 		g.mu.Unlock()
 	}
@@ -534,17 +534,17 @@ func (srv *Server) UpdateWorkflow(ctx context.Context, req *UpdateWorkflowReq) (
 }
 
 func (srv *Server) prepareWorkflow(c *Call) (*Workflow, error) {
-	err := validateString(c.Id, "workflow id")
+	err := validateString(c.ID, "workflow id")
 	if err != nil {
 		return nil, err
 	}
-	err = validateString(c.Name, "workflow name")
+	err = validateString(c.API, "workflow API")
 	if err != nil {
 		return nil, err
 	}
-	api := srv.r.getWorkflowAPI(c.Name)
+	api := srv.r.getWorkflowAPI(c.API)
 	if api == nil {
-		return nil, fmt.Errorf("workflow API not found: %v", c.Name)
+		return nil, fmt.Errorf("workflow API not found: %v", c.API)
 	}
 	if c.InputType != "" && c.InputType != api.Input {
 		return nil, fmt.Errorf("workflow API input type mismatch")
@@ -559,32 +559,32 @@ func (srv *Server) prepareWorkflow(c *Call) (*Workflow, error) {
 	return &Workflow{
 		Status:  Workflow_Started,
 		Input:   c.Input,
-		Id:      c.Id,
-		Name:    api.Name,
+		ID:      c.ID,
+		API:     api.Name,
 		Service: api.Service,
 		Version: 1,
 		Threads: []*Thread{{ // unblock workflow on main thread
 			Status:   Thread_Unblocked,
-			Id:       "_main_",
-			Workflow: c.Id,
+			ID:       "_main_",
+			Workflow: c.ID,
 			Service:  api.Service,
-			ToStatus: "_start_",
+			Callback: "_start_",
 		}},
 	}, nil
 }
 
-func (srv *Server) NewWorkflow(ctx context.Context, req *NewWorkflowReq) (*Empty, error) {
-	p, err := srv.prepareWorkflow(req.Call)
+func (srv *Server) NewWorkflow(ctx context.Context, c *Call) (*Empty, error) {
+	p, err := srv.prepareWorkflow(c)
 	if err != nil {
 		return nil, err
 	}
-	slock := srv.r.trylockWorkflow(req.Call.Id, time.Second*30)
+	slock := srv.r.trylockWorkflow(c.ID, time.Second*30)
 	if slock == nil {
 		return nil, fmt.Errorf("can't lock new state")
 	}
-	defer srv.r.unlockWorkflow(req.Call.Id, slock.id)
+	defer srv.r.unlockWorkflow(c.ID, slock.id)
 
-	old := srv.r.getWorkflow(req.Call.Id)
+	old := srv.r.getWorkflow(c.ID)
 	if old != nil {
 		return nil, fmt.Errorf("already exists")
 	}
@@ -610,7 +610,7 @@ func (srv *Server) NewWorkflow(ctx context.Context, req *NewWorkflowReq) (*Empty
 }
 
 func (srv *Server) CloseChan(ctx context.Context, req *CloseChanReq) (*Empty, error) {
-	for i, id := range req.Ids {
+	for i, id := range req.IDs {
 		err := validateString(id, fmt.Sprintf("channel id %v", i))
 		if err != nil {
 			return nil, err
@@ -626,7 +626,7 @@ func (srv *Server) CloseChan(ctx context.Context, req *CloseChanReq) (*Empty, er
 		break
 	}
 	srv.r.updates = append(srv.r.updates, workflowUpdate{
-		ChannelsToClose: req.Ids,
+		ChannelsToClose: req.IDs,
 	})
 	cb := srv.r.done
 	srv.r.batchMu.Unlock()
@@ -729,7 +729,7 @@ func (p *Proc) workflowUpdates() {
 				if lid != nil {
 					toSend = append(toSend, LockedWorkflow{
 						Thread: ss.Queue[0],
-						LockId: lid.id,
+						LockID: lid.id,
 					})
 					ss.Lock = lid
 				}
@@ -752,7 +752,7 @@ func (p *Proc) workflowUpdates() {
 						q := p.stateQueues[req.Thread.Workflow]
 						q.Queue = q.Queue[1:]
 						p.mu.Unlock()
-						p.r.unlockWorkflow(req.Thread.Workflow, req.LockId)
+						p.r.unlockWorkflow(req.Thread.Workflow, req.LockID)
 					}(req)
 					continue
 				}
