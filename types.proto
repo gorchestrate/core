@@ -180,7 +180,7 @@ message ListTypesResp {
     repeated Type types = 1;
 }
 
-message GetWorkflowAPIsReq {
+message GetWorkflowAPIReq {
     string ID = 1;
 }
 
@@ -274,6 +274,8 @@ service Runtime {
 
     rpc ListChans(ListChansReq) returns (ListChansResp);
 
+    rpc GetChan(GetChanReq) returns (Channel);
+
     rpc CloseChan(CloseChanReq) returns (Empty);
 
     rpc DeleteChan(DeleteChanReq) returns (Empty);
@@ -281,6 +283,8 @@ service Runtime {
 
     // Type management
     rpc PutType(Type) returns (Empty);
+
+    rpc GetType(GetTypeReq) returns (Type);
     
     rpc ListTypes(ListTypesReq) returns (ListTypesResp);
 
@@ -290,6 +294,8 @@ service Runtime {
     rpc PutWorkflowAPI(WorkflowAPI) returns (Empty);
 
     rpc ListWorkflowAPIs(ListWorkflowAPIsReq) returns (ListWorkflowAPIsResp);    
+
+    rpc GetWorkflowAPI(GetWorkflowAPIReq) returns (WorkflowAPI);    
 
     rpc DeleteWorkflowAPI(WorkflowAPI) returns (Empty);    
 }

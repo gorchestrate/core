@@ -166,6 +166,10 @@ func (srv *Server) MakeChan(ctx context.Context, c *Channel) (*Empty, error) {
 	return &Empty{}, nil
 }
 
+func (srv *Server) GetWorkflowAPI(ctx context.Context, req *GetWorkflowAPIReq) (*WorkflowAPI, error) {
+	return nil, nil
+}
+
 func (srv *Server) ListWorkflowAPIs(ctx context.Context, req *ListWorkflowAPIsReq) (*ListWorkflowAPIsResp, error) {
 	// if req.ID != "" {
 	// 	item, err := srv.r.db.GetCF(srv.r.ro, srv.r.cfhAPIs, []byte(req.ID))
@@ -252,6 +256,10 @@ func (srv *Server) PutType(ctx context.Context, req *Type) (*Empty, error) {
 	return &Empty{}, srv.r.db.Write(srv.r.wo, wb)
 }
 
+func (srv *Server) GetType(ctx context.Context, req *GetTypeReq) (*Type, error) {
+	return nil,nil
+}
+
 func (srv *Server) ListTypes(ctx context.Context, req *ListTypesReq) (*ListTypesResp, error) {
 	// if req.ID != "" {
 	// 	item, err := srv.r.db.GetCF(srv.r.ro, srv.r.cfhTypes, []byte(req.ID))
@@ -283,6 +291,10 @@ func (srv *Server) ListTypes(ctx context.Context, req *ListTypesReq) (*ListTypes
 	return &ListTypesResp{
 		Types: ret,
 	}, nil
+}
+
+func (srv *Server) GetChan(ctx context.Context, req *GetChanReq) (*Channel, error) {
+	return nil,nil
 }
 
 func (srv *Server) ListChans(ctx context.Context, req *ListChansReq) (*ListChansResp, error) {
